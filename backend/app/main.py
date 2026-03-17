@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router
 from app.config import get_settings
+from app.providers import cleanup_providers, get_provider_manager
 
 settings = get_settings()
 
@@ -20,10 +21,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     print(f"Environment: {settings.environment}")
     print(f"Debug: {settings.debug}")
 
+    # Initialize providers
+    manager = get_provider_manager()
+    providers = manager.list_providers()
+    print(f"Registered providers: {', '.join(providers)}")
+
     yield
 
     # Shutdown
     print(f"Shutting down {settings.app_name}")
+    await cleanup_providers()
 
 
 def create_app() -> FastAPI:

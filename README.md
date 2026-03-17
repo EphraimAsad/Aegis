@@ -6,22 +6,28 @@ Aegis is a model-agnostic orchestration system that helps researchers conduct co
 
 ## Current Status
 
-**Phase**: 2 - Provider Abstraction Layer (Next)
+**Phase**: 3 - Project Intake and Clarification Workflow (Next)
 
 | Phase | Status |
 |-------|--------|
 | Phase 0: Bootstrap | Complete |
 | Phase 1: Scaffold | Complete |
-| Phase 2: Provider Abstraction | Next |
-| Phase 3: Project Intake | Pending |
+| Phase 2: Provider Abstraction | Complete |
+| Phase 3: Project Intake | Next |
 | Phase 4: Source Adapters | Pending |
 | Phase 5: Document Processing | Pending |
 | Phase 6: Long-running Jobs | Pending |
 | Phase 7: Retrieval & Exports | Pending |
 | Phase 8: Polish & Testing | Pending |
 
-## Features (Planned)
+## Features
 
+### Implemented
+- **Multi-provider support**: Ollama (default), OpenAI, Anthropic
+- **Provider abstraction**: Unified interface for chat, completion, embeddings
+- **Health monitoring**: Provider health checks and status
+
+### Planned
 - **Multi-provider support**: Ollama (default), OpenAI, Anthropic, Gemini
 - **Academic source coverage**: OpenAlex, Crossref, Semantic Scholar, arXiv, PubMed
 - **Project workflow**: Intake, clarification, search, organize, retrieve
@@ -126,11 +132,33 @@ See `.env.example` files in root, `backend/`, and `frontend/` directories for al
 | `OLLAMA_BASE_URL` | Ollama API endpoint | http://localhost:11434 |
 | `DEFAULT_PROVIDER` | Default LLM provider | ollama |
 | `DEFAULT_MODEL` | Default model name | llama2 |
+| `OPENAI_API_KEY` | OpenAI API key (optional) | - |
+| `ANTHROPIC_API_KEY` | Anthropic API key (optional) | - |
+
+### Provider Configuration
+
+Aegis uses a provider abstraction layer that supports multiple AI providers:
+
+- **Ollama** (default): Local LLM inference, no API key required
+- **OpenAI**: Requires `OPENAI_API_KEY` environment variable
+- **Anthropic**: Requires `ANTHROPIC_API_KEY` environment variable
+
+Set the `DEFAULT_PROVIDER` to choose which provider to use by default. Providers are only registered if their API keys are configured (except Ollama, which is always available).
 
 ## API Endpoints
 
 ### Health Check
 - `GET /api/v1/health` - Backend health status with DB/Redis connectivity
+- `GET /api/v1/health/live` - Kubernetes liveness probe
+- `GET /api/v1/health/ready` - Kubernetes readiness probe
+
+### Providers
+- `GET /api/v1/providers` - List all registered AI providers
+- `GET /api/v1/providers/health` - Check health of all providers
+- `GET /api/v1/providers/{name}` - Get provider details and capabilities
+- `GET /api/v1/providers/{name}/models` - List available models for a provider
+- `POST /api/v1/providers/chat` - Send chat completion request
+- `POST /api/v1/providers/embed` - Generate text embeddings
 
 ## Project Structure
 

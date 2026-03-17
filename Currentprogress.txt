@@ -2,15 +2,14 @@ Aegis Progress Tracker
 ======================
 
 Project: Aegis
-Last Updated: 2026-03-17 14:30 UTC
+Last Updated: 2026-03-17 16:00 UTC
 
 Repository State Summary:
-- Phase 0 and Phase 1 completed
-- Full monorepo structure with frontend and backend
-- Docker orchestration configured with 5 services
-- Provider abstraction interface defined
-- Health endpoints implemented for both frontend and backend
-- CI/CD pipeline configured with GitHub Actions
+- Phases 0, 1, and 2 completed
+- Full provider abstraction layer implemented
+- Three providers: Ollama (local default), OpenAI, Anthropic
+- Provider API endpoints for listing, health checks, chat, and embeddings
+- Provider manager with registration, selection, and lifecycle management
 
 Active Architecture Decisions:
 - Frontend: Next.js 14 + TypeScript + Tailwind + shadcn/ui
@@ -23,7 +22,7 @@ Active Architecture Decisions:
 Phases:
 [x] Phase 0 — repo analysis and progress bootstrap
 [x] Phase 1 — scaffold and core architecture
-[ ] Phase 2 — provider abstraction layer
+[x] Phase 2 — provider abstraction layer
 [ ] Phase 3 — project intake and clarification workflow
 [ ] Phase 4 — academic source adapters and search orchestration
 [ ] Phase 5 — document processing and storage
@@ -32,37 +31,33 @@ Phases:
 [ ] Phase 8 — polish, testing, docs, production hardening
 
 Current Phase:
-- Phase 2: Provider abstraction layer (next)
+- Phase 3: Project intake and clarification workflow (next)
 
 Current Tasks:
-- Implement OllamaProvider (local default)
-- Implement at least one remote provider (OpenAI or Anthropic)
-- Add provider health testing
-- Add model selection/configuration support
-- Create provider factory/registry
+- Create Project model and database schema
+- Create project creation API endpoints
+- Implement clarification question generation
+- Build scope capture and readiness state logic
+- Create project creation UI in frontend
 
 Completed This Session:
-- Phase 0: Bootstrap progress tracking
-  - Currentprogress.txt populated
-  - README.md created
-  - .gitignore updated for full stack
-- Phase 1: Scaffold and core architecture
-  - Root infrastructure (docker-compose.yml, docker-compose.dev.yml, .env.example)
-  - Backend FastAPI skeleton with health endpoints
-  - Frontend Next.js 14+ skeleton with Tailwind and shadcn/ui config
-  - Provider abstraction interface (base.py)
-  - Database setup (SQLAlchemy async, Alembic)
-  - Dockerfiles for both services
-  - GitHub Actions CI/CD pipeline
-  - Backend tests structure
+- Phase 2: Provider abstraction layer
+  - OllamaProvider with chat, complete, embed, healthcheck, streaming
+  - OpenAIProvider with full API support
+  - AnthropicProvider for Claude models
+  - ProviderManager for registration, selection, lifecycle
+  - Provider API endpoints (/api/v1/providers)
+  - Chat and embedding endpoints
+  - Provider health checks
+  - Tests for provider endpoints
 
 Next Tasks:
-- Implement OllamaProvider
-- Implement OpenAIProvider
-- Add provider manager/factory
-- Test provider health checks
-- Add model listing endpoints
+- Design Project model schema
+- Implement project CRUD operations
+- Create clarification workflow
+- Build project creation UI
 
 Blockers / Notes:
 - None currently
-- Ready to proceed to Phase 2
+- API keys required for OpenAI and Anthropic (set via environment variables)
+- Ollama must be running for local provider to work
