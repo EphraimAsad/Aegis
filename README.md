@@ -6,13 +6,13 @@ Aegis is a model-agnostic orchestration system that helps researchers conduct co
 
 ## Current Status
 
-**Phase**: 1 - Scaffold and Core Architecture (In Progress)
+**Phase**: 2 - Provider Abstraction Layer (Next)
 
 | Phase | Status |
 |-------|--------|
 | Phase 0: Bootstrap | Complete |
-| Phase 1: Scaffold | In Progress |
-| Phase 2: Provider Abstraction | Pending |
+| Phase 1: Scaffold | Complete |
+| Phase 2: Provider Abstraction | Next |
 | Phase 3: Project Intake | Pending |
 | Phase 4: Source Adapters | Pending |
 | Phase 5: Document Processing | Pending |
