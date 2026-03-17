@@ -2,14 +2,15 @@ Aegis Progress Tracker
 ======================
 
 Project: Aegis
-Last Updated: 2026-03-17 16:00 UTC
+Last Updated: 2026-03-17 18:00 UTC
 
 Repository State Summary:
-- Phases 0, 1, and 2 completed
-- Full provider abstraction layer implemented
-- Three providers: Ollama (local default), OpenAI, Anthropic
-- Provider API endpoints for listing, health checks, chat, and embeddings
-- Provider manager with registration, selection, and lifecycle management
+- Phases 0, 1, 2, and 3 completed
+- Full project intake and clarification workflow implemented
+- Database models for Project and ClarificationQuestion
+- AI-powered clarification question generation
+- Project CRUD operations with status management
+- Scope capture and readiness state logic
 
 Active Architecture Decisions:
 - Frontend: Next.js 14 + TypeScript + Tailwind + shadcn/ui
@@ -23,7 +24,7 @@ Phases:
 [x] Phase 0 — repo analysis and progress bootstrap
 [x] Phase 1 — scaffold and core architecture
 [x] Phase 2 — provider abstraction layer
-[ ] Phase 3 — project intake and clarification workflow
+[x] Phase 3 — project intake and clarification workflow
 [ ] Phase 4 — academic source adapters and search orchestration
 [ ] Phase 5 — document processing and storage
 [ ] Phase 6 — long-running jobs and overnight agent workflow
@@ -31,33 +32,37 @@ Phases:
 [ ] Phase 8 — polish, testing, docs, production hardening
 
 Current Phase:
-- Phase 3: Project intake and clarification workflow (next)
+- Phase 4: Academic source adapters and search orchestration (next)
 
 Current Tasks:
-- Create Project model and database schema
-- Create project creation API endpoints
-- Implement clarification question generation
-- Build scope capture and readiness state logic
-- Create project creation UI in frontend
+- Implement OpenAlex adapter
+- Implement Crossref adapter
+- Implement Semantic Scholar adapter
+- Implement arXiv adapter
+- Implement PubMed/Europe PMC adapter
+- Create normalized metadata schema
+- Implement deduplication logic
+- Create search planning service
 
 Completed This Session:
-- Phase 2: Provider abstraction layer
-  - OllamaProvider with chat, complete, embed, healthcheck, streaming
-  - OpenAIProvider with full API support
-  - AnthropicProvider for Claude models
-  - ProviderManager for registration, selection, lifecycle
-  - Provider API endpoints (/api/v1/providers)
-  - Chat and embedding endpoints
-  - Provider health checks
-  - Tests for provider endpoints
+- Phase 3: Project intake and clarification workflow
+  - Project model with status lifecycle
+  - ClarificationQuestion model
+  - Project scope schema (disciplines, keywords, dates, etc.)
+  - ProjectService with CRUD and status management
+  - ClarificationService with AI-powered question generation
+  - Project API endpoints (CRUD, scope, status)
+  - Clarification endpoints (generate, answer, status)
+  - Alembic migration for database tables
+  - Project tests
 
 Next Tasks:
-- Design Project model schema
-- Implement project CRUD operations
-- Create clarification workflow
-- Build project creation UI
+- Implement academic source adapters
+- Create normalized Paper/Document schema
+- Build search orchestration service
+- Add deduplication logic
 
 Blockers / Notes:
 - None currently
-- API keys required for OpenAI and Anthropic (set via environment variables)
-- Ollama must be running for local provider to work
+- Database migration needs to be run: alembic upgrade head
+- Clarification questions require a working AI provider

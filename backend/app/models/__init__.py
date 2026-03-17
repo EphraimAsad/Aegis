@@ -5,9 +5,18 @@ This is necessary for Alembic to detect them for migrations.
 """
 
 from app.db.base import Base
+from app.models.clarification import (
+    ClarificationQuestion,
+    QuestionCategory,
+    QuestionType,
+)
+from app.models.project import Project, ProjectStatus
 
-# Import models here as they are created
-# from app.models.project import Project
-# from app.models.document import Document
-
-__all__ = ["Base"]
+__all__ = [
+    "Base",
+    "Project",
+    "ProjectStatus",
+    "ClarificationQuestion",
+    "QuestionType",
+    "QuestionCategory",
+]

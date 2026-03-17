@@ -6,15 +6,15 @@ Aegis is a model-agnostic orchestration system that helps researchers conduct co
 
 ## Current Status
 
-**Phase**: 3 - Project Intake and Clarification Workflow (Next)
+**Phase**: 4 - Academic Source Adapters (Next)
 
 | Phase | Status |
 |-------|--------|
 | Phase 0: Bootstrap | Complete |
 | Phase 1: Scaffold | Complete |
 | Phase 2: Provider Abstraction | Complete |
-| Phase 3: Project Intake | Next |
-| Phase 4: Source Adapters | Pending |
+| Phase 3: Project Intake | Complete |
+| Phase 4: Source Adapters | Next |
 | Phase 5: Document Processing | Pending |
 | Phase 6: Long-running Jobs | Pending |
 | Phase 7: Retrieval & Exports | Pending |
@@ -26,6 +26,9 @@ Aegis is a model-agnostic orchestration system that helps researchers conduct co
 - **Multi-provider support**: Ollama (default), OpenAI, Anthropic
 - **Provider abstraction**: Unified interface for chat, completion, embeddings
 - **Health monitoring**: Provider health checks and status
+- **Project management**: Create, update, delete research projects
+- **Clarification workflow**: AI-generated questions to refine research scope
+- **Scope definition**: Keywords, disciplines, date ranges, document types
 
 ### Planned
 - **Multi-provider support**: Ollama (default), OpenAI, Anthropic, Gemini
@@ -159,6 +162,19 @@ Set the `DEFAULT_PROVIDER` to choose which provider to use by default. Providers
 - `GET /api/v1/providers/{name}/models` - List available models for a provider
 - `POST /api/v1/providers/chat` - Send chat completion request
 - `POST /api/v1/providers/embed` - Generate text embeddings
+
+### Projects
+- `POST /api/v1/projects` - Create a new research project
+- `GET /api/v1/projects` - List all projects (with pagination)
+- `GET /api/v1/projects/{id}` - Get project details
+- `PATCH /api/v1/projects/{id}` - Update project
+- `DELETE /api/v1/projects/{id}` - Delete project
+- `PUT /api/v1/projects/{id}/scope` - Update project scope
+- `PUT /api/v1/projects/{id}/status` - Update project status
+- `POST /api/v1/projects/{id}/clarify` - Start clarification (generates AI questions)
+- `GET /api/v1/projects/{id}/questions` - Get clarification questions
+- `PUT /api/v1/projects/{id}/questions/{qid}` - Answer a question
+- `GET /api/v1/projects/{id}/clarification-status` - Get clarification progress
 
 ## Project Structure
 
