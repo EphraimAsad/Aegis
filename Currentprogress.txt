@@ -1,0 +1,54 @@
+Aegis Progress Tracker
+======================
+
+Project: Aegis
+Last Updated: 2026-03-17 12:00 UTC
+
+Repository State Summary:
+- Fresh repository initialized with git on main branch
+- Phase 0 in progress: Bootstrap and tracking setup
+- No application code written yet
+
+Active Architecture Decisions:
+- Frontend: Next.js 14 + TypeScript + Tailwind + shadcn/ui
+- Backend: FastAPI + Python 3.11+ + SQLAlchemy + Alembic + Pydantic
+- Queue: Redis + Celery
+- DB: PostgreSQL with pgvector (SQLite fallback for lightweight dev)
+- Local default model provider: Ollama
+- Provider abstraction: enabled (mandatory)
+
+Phases:
+[x] Phase 0 — repo analysis and progress bootstrap
+[ ] Phase 1 — scaffold and core architecture
+[ ] Phase 2 — provider abstraction layer
+[ ] Phase 3 — project intake and clarification workflow
+[ ] Phase 4 — academic source adapters and search orchestration
+[ ] Phase 5 — document processing and storage
+[ ] Phase 6 — long-running jobs and overnight agent workflow
+[ ] Phase 7 — retrieval, search, and formatted outputs
+[ ] Phase 8 — polish, testing, docs, production hardening
+
+Current Phase:
+- Phase 1: Scaffold and core architecture
+
+Current Tasks:
+- Create docker-compose.yml and docker-compose.dev.yml
+- Set up backend FastAPI skeleton with health endpoints
+- Set up frontend Next.js 14+ skeleton with Tailwind
+- Configure environment variable handling
+- Create Dockerfiles for backend and frontend
+
+Completed This Session:
+- Repository analysis completed
+- Currentprogress.txt populated with actual values
+- README.md created with initial project documentation
+- .gitignore updated for full-stack development
+
+Next Tasks:
+- Create root infrastructure (docker-compose, .env.example)
+- Build backend foundation
+- Build frontend foundation
+- Add tests and CI/CD
+
+Blockers / Notes:
+- None currently
