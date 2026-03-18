@@ -6,7 +6,7 @@ Aegis is a model-agnostic orchestration system that helps researchers conduct co
 
 ## Current Status
 
-**Phase**: 4 - Academic Source Adapters (Next)
+**Phase**: 5 - Document Processing (Next)
 
 | Phase | Status |
 |-------|--------|
@@ -14,8 +14,8 @@ Aegis is a model-agnostic orchestration system that helps researchers conduct co
 | Phase 1: Scaffold | Complete |
 | Phase 2: Provider Abstraction | Complete |
 | Phase 3: Project Intake | Complete |
-| Phase 4: Source Adapters | Next |
-| Phase 5: Document Processing | Pending |
+| Phase 4: Source Adapters | Complete |
+| Phase 5: Document Processing | Next |
 | Phase 6: Long-running Jobs | Pending |
 | Phase 7: Retrieval & Exports | Pending |
 | Phase 8: Polish & Testing | Pending |
@@ -29,13 +29,15 @@ Aegis is a model-agnostic orchestration system that helps researchers conduct co
 - **Project management**: Create, update, delete research projects
 - **Clarification workflow**: AI-generated questions to refine research scope
 - **Scope definition**: Keywords, disciplines, date ranges, document types
+- **Academic source adapters**: OpenAlex, Crossref, Semantic Scholar, arXiv, PubMed
+- **Multi-source search**: Concurrent search with result deduplication
+- **Normalized paper schema**: Consistent format across all sources
 
 ### Planned
-- **Multi-provider support**: Ollama (default), OpenAI, Anthropic, Gemini
-- **Academic source coverage**: OpenAlex, Crossref, Semantic Scholar, arXiv, PubMed
-- **Project workflow**: Intake, clarification, search, organize, retrieve
+- **Additional providers**: Gemini support
 - **Long-running jobs**: Background research tasks with progress tracking
 - **Document processing**: Chunking, embeddings, summarization, evidence extraction
+- **Vector retrieval**: Semantic search with pgvector
 - **Export options**: CSV, JSON, Markdown, annotated bibliography
 
 ## Architecture
@@ -176,6 +178,23 @@ Set the `DEFAULT_PROVIDER` to choose which provider to use by default. Providers
 - `PUT /api/v1/projects/{id}/questions/{qid}` - Answer a question
 - `GET /api/v1/projects/{id}/clarification-status` - Get clarification progress
 
+### Academic Search
+- `GET /api/v1/search/sources` - List available academic sources
+- `GET /api/v1/search/sources/health` - Check health of all sources
+- `GET /api/v1/search` - Multi-source search with deduplication
+- `GET /api/v1/search/doi/{doi}` - Look up paper by DOI
+- `GET /api/v1/search/source/{name}` - Search single source
+
+### Academic Sources
+
+| Source | Features |
+|--------|----------|
+| **OpenAlex** | Free, comprehensive, inverted index abstracts |
+| **Crossref** | DOI metadata, citation counts |
+| **Semantic Scholar** | AI features, influential citations |
+| **arXiv** | Preprints, full text access |
+| **PubMed** | Biomedical focus, MeSH terms |
+
 ## Project Structure
 
 ```
@@ -188,7 +207,8 @@ Aegis/
 │   │   ├── models/    # SQLAlchemy models
 │   │   ├── schemas/   # Pydantic schemas
 │   │   ├── services/  # Business logic
-│   │   └── providers/ # LLM provider abstraction
+│   │   ├── providers/ # LLM provider abstraction
+│   │   └── sources/   # Academic source adapters
 │   ├── alembic/       # Database migrations
 │   └── tests/         # Backend tests
 ├── frontend/          # Next.js frontend
