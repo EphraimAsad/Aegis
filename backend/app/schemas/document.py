@@ -108,20 +108,23 @@ class DocumentSummary(BaseModel):
     """Lightweight document summary for lists."""
 
     id: int
-    project_id: int
+    project_id: int | None = None
     title: str
-    authors: list[Author] = Field(default_factory=list)
+    authors: list[Author] | str = Field(default_factory=list)
     year: int | None = None
     doi: str | None = None
     status: DocumentStatus
+    document_type: str | None = None
+    journal_name: str | None = None
     is_open_access: bool = False
     citation_count: int | None = None
     has_summary: bool = False
     has_full_text: bool = False
     chunk_count: int = 0
     tags: list[str] = Field(default_factory=list)
+    source_name: str | None = None
     relevance_score: float | None = None
-    created_at: datetime
+    created_at: datetime | None = None
 
     model_config = {"from_attributes": True}
 

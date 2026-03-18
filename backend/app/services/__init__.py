@@ -11,6 +11,10 @@ from app.services.summarization import SummarizationService, SummaryLevel, get_s
 from app.services.job import JobService, get_job_service
 from app.services.job_progress import JobProgressService, get_job_progress_service
 from app.services.tagging import TaggingService, get_tagging_service
+from app.services.export import ExportService, get_export_service
+from app.services.citation import CitationService, get_citation_service
+from app.services.advanced_search import AdvancedSearchService, get_advanced_search_service
+from app.services.analytics import AnalyticsService, get_analytics_service
 
 __all__ = [
     "check_database_health",
@@ -34,4 +38,12 @@ __all__ = [
     "get_job_service",
     "JobProgressService",
     "get_job_progress_service",
+    "ExportService",
+    "get_export_service",
+    "CitationService",
+    "get_citation_service",
+    "AdvancedSearchService",
+    "get_advanced_search_service",
+    "AnalyticsService",
+    "get_analytics_service",
 ]

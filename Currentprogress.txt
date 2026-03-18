@@ -2,10 +2,10 @@ Aegis Progress Tracker
 ======================
 
 Project: Aegis
-Last Updated: 2026-03-18 00:00 UTC
+Last Updated: 2026-03-18
 
 Repository State Summary:
-- Phases 0, 1, 2, 3, 4, 5, 6, and 6.5 completed
+- Phases 0, 1, 2, 3, 4, 5, 6, 6.5, and 7 completed
 - Full background job system implemented with Celery + Redis
 - Job model for tracking task status and progress
 - Document processing tasks (chunk, embed, summarize)
@@ -13,6 +13,10 @@ Repository State Summary:
 - Job management API endpoints
 - Agent memory system with progress logging and checkpoints
 - Resume-from-checkpoint capability for long-running jobs
+- Export functionality (CSV, JSON, Markdown, BibTeX, Annotated Bibliography)
+- Citation generation (APA, Chicago, MLA, Harvard, IEEE, BibTeX)
+- Advanced search with filters and faceted results
+- Analytics dashboard with publication trends and author stats
 
 Active Architecture Decisions:
 - Frontend: Next.js 14 + TypeScript + Tailwind + shadcn/ui
@@ -31,20 +35,64 @@ Phases:
 [x] Phase 5 — document processing and storage
 [x] Phase 6 — long-running jobs and overnight agent workflow
 [x] Phase 6.5 — agent memory and checkpoint/resume system
-[ ] Phase 7 — retrieval, search, and formatted outputs
+[x] Phase 7 — retrieval, search, and formatted outputs
 [ ] Phase 8 — polish, testing, docs, production hardening
 
 Current Phase:
-- Phase 7: Retrieval, search, and formatted outputs (next)
+- Phase 8: Polish, testing, docs, production hardening (next)
 
 Current Tasks:
-- Implement library management (collections, folders)
-- Add advanced search with filters
-- Create export functionality (CSV, JSON, Markdown, BibTeX)
-- Build insights and analytics dashboard
-- Implement annotated bibliography generation
+- Add comprehensive test coverage
+- Frontend UI development
+- Production configuration
+- Documentation improvements
 
 Completed This Session:
+- Phase 7: Retrieval, Search, and Formatted Outputs
+  - Fixed CI lint failures (frontend ESLint config)
+  - Export functionality with 5 formats:
+    - CSV export with full metadata
+    - JSON export with structured data
+    - Markdown formatted reports
+    - BibTeX bibliography entries
+    - Annotated bibliography with summaries
+  - Citation generation with 6 styles:
+    - APA 7th edition
+    - Chicago author-date
+    - MLA 9th edition
+    - Harvard referencing
+    - IEEE numeric style
+    - BibTeX entries
+  - Advanced search service:
+    - Multi-filter query building
+    - Keyword and semantic search
+    - Year, author, journal filters
+    - Document type and status filters
+    - Citation count filtering
+    - Open access and full text filters
+    - Faceted results with aggregated counts
+  - Analytics dashboard:
+    - Project overview statistics
+    - Publication trends over time
+    - Top authors by document count
+    - Keyword and tag analysis
+    - Source distribution stats
+    - Document type breakdown
+  - New API endpoints:
+    - POST /api/v1/exports - Export documents
+    - POST /api/v1/exports/download - Download as file
+    - GET /api/v1/exports/preview - Preview export
+    - GET /api/v1/exports/formats - List formats
+    - POST /api/v1/citations/format - Format citations
+    - GET /api/v1/citations/document/{id} - Document citations
+    - GET /api/v1/citations/styles - List citation styles
+    - POST /api/v1/documents/advanced-search - Advanced search
+    - GET /api/v1/analytics/overview - Project overview
+    - GET /api/v1/analytics/dashboard - Full dashboard
+    - GET /api/v1/analytics/trends - Publication trends
+    - GET /api/v1/analytics/authors - Author statistics
+    - GET /api/v1/analytics/keywords - Keyword analysis
+
 - Phase 6.5: Agent Memory and Checkpoint/Resume System
   - Fixed CI pipeline (Ruff config migration, package-lock.json generation)
   - JobProgressLog model for agent memory persistence
@@ -69,10 +117,10 @@ Completed This Session:
   - Job statistics and history
 
 Next Tasks:
-- Library organization features
-- Export formatters
-- Analytics and insights
-- Citation generation
+- Comprehensive test coverage for all services
+- Frontend UI implementation
+- Production deployment configuration
+- Additional provider support (Gemini)
 
 Blockers / Notes:
 - None currently
@@ -81,3 +129,5 @@ Blockers / Notes:
 - Research jobs can run overnight for large projects
 - Jobs create checkpoints automatically for fault tolerance
 - Resume failed jobs with: POST /api/v1/jobs/{id}/resume
+- Export large collections with: POST /api/v1/exports/download
+- Citation styles follow official style guides (APA 7, Chicago 17, MLA 9)

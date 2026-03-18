@@ -27,6 +27,12 @@ from app.services.embedding import get_embedding_service
 from app.services.retrieval import get_retrieval_service
 from app.services.summarization import SummaryLevel, get_summarization_service
 from app.services.tagging import get_tagging_service
+from app.services.advanced_search import AdvancedSearchService
+from app.schemas.advanced_search import (
+    AdvancedSearchFilters,
+    AdvancedSearchRequest,
+    AdvancedSearchResponse,
+)
 from app.sources import get_source_manager
 
 router = APIRouter()
@@ -475,3 +481,38 @@ async def find_related_documents(
         top_k=top_k,
     )
     return related
+
+
+@router.post("/advanced-search", response_model=AdvancedSearchResponse)
+async def advanced_search(
+    request: AdvancedSearchRequest,
+    db: AsyncSession = Depends(get_db),
+) -> AdvancedSearchResponse:
+    """
+    Advanced search with filters and facets.
+
+    Supports filtering by:
+    - Text query (keyword search in title/abstract)
+    - Tags and keywords
+    - Date range (years)
+    - Authors and journals
+    - Document types
+    - Citation metrics
+    - Open access, full text availability
+
+    Returns results with optional facet counts for filtering UI.
+    """
+    service = AdvancedSearchService(db)
+
+    try:
+        return await service.search(
+            project_id=request.project_id,
+            filters=request.filters,
+            page=request.page,
+            page_size=request.page_size,
+            include_facets=request.include_facets,
+            sort_by=request.sort_by,
+            sort_order=request.sort_order,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

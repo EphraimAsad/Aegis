@@ -2,7 +2,17 @@
 
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import documents, health, jobs, projects, providers, search
+from app.api.v1.endpoints import (
+    analytics,
+    citations,
+    documents,
+    exports,
+    health,
+    jobs,
+    projects,
+    providers,
+    search,
+)
 
 v1_router = APIRouter()
 
@@ -13,3 +23,6 @@ v1_router.include_router(projects.router, prefix="/projects", tags=["projects"])
 v1_router.include_router(search.router, prefix="/search", tags=["search"])
 v1_router.include_router(documents.router, prefix="/documents", tags=["documents"])
 v1_router.include_router(jobs.router, prefix="/jobs", tags=["jobs"])
+v1_router.include_router(exports.router, prefix="/exports", tags=["exports"])
+v1_router.include_router(citations.router, prefix="/citations", tags=["citations"])
+v1_router.include_router(analytics.router, prefix="/analytics", tags=["analytics"])

@@ -6,7 +6,7 @@ Aegis is a model-agnostic orchestration system that helps researchers conduct co
 
 ## Current Status
 
-**Phase**: 7 - Retrieval & Exports (Next)
+**Phase**: 8 - Polish & Testing (Next)
 
 | Phase | Status |
 |-------|--------|
@@ -18,8 +18,8 @@ Aegis is a model-agnostic orchestration system that helps researchers conduct co
 | Phase 5: Document Processing | Complete |
 | Phase 6: Long-running Jobs | Complete |
 | Phase 6.5: Agent Memory | Complete |
-| Phase 7: Retrieval & Exports | Next |
-| Phase 8: Polish & Testing | Pending |
+| Phase 7: Retrieval & Exports | Complete |
+| Phase 8: Polish & Testing | Next |
 
 ## Features
 
@@ -46,12 +46,15 @@ Aegis is a model-agnostic orchestration system that helps researchers conduct co
 - **Batch processing**: Process multiple documents concurrently
 - **Agent memory**: Progress logs for long-running jobs with checkpoint/resume capability
 - **Job checkpointing**: Persistent state snapshots for fault-tolerant job execution
+- **Export functionality**: CSV, JSON, Markdown, BibTeX, and annotated bibliography formats
+- **Citation generation**: APA, Chicago, MLA, Harvard, IEEE, and BibTeX citation styles
+- **Advanced search**: Filters by year, author, journal, tags, citations with faceted results
+- **Analytics dashboard**: Publication trends, top authors, keyword analysis, source distribution
 
 ### Planned
 - **Additional providers**: Gemini support
-- **Export options**: CSV, JSON, Markdown, BibTeX, annotated bibliography
 - **Library organization**: Collections and folders
-- **Analytics dashboard**: Research insights and trends
+- **Frontend UI**: Full React interface for all features
 
 ## Architecture
 
@@ -212,7 +215,26 @@ Set the `DEFAULT_PROVIDER` to choose which provider to use by default. Providers
 - `POST /api/v1/documents/{id}/auto-tag` - Auto-generate tags
 - `GET /api/v1/documents/{id}/related` - Find related documents
 - `POST /api/v1/documents/search/semantic` - Semantic search
+- `POST /api/v1/documents/advanced-search` - Advanced search with filters and facets
 - `GET /api/v1/documents/stats/{project_id}` - Document statistics
+
+### Exports
+- `POST /api/v1/exports` - Export documents (CSV, JSON, Markdown, BibTeX)
+- `POST /api/v1/exports/download` - Download export as file
+- `GET /api/v1/exports/preview` - Preview export content
+- `GET /api/v1/exports/formats` - List available export formats
+
+### Citations
+- `POST /api/v1/citations/format` - Format citations for documents
+- `GET /api/v1/citations/document/{id}` - Get all citation formats for a document
+- `GET /api/v1/citations/styles` - List available citation styles
+
+### Analytics
+- `GET /api/v1/analytics/overview` - Project overview statistics
+- `GET /api/v1/analytics/dashboard` - Full analytics dashboard
+- `GET /api/v1/analytics/trends` - Publication trends over time
+- `GET /api/v1/analytics/authors` - Top authors statistics
+- `GET /api/v1/analytics/keywords` - Keyword and tag analysis
 
 ### Jobs
 - `GET /api/v1/jobs` - List jobs (with filters)

@@ -76,6 +76,43 @@ from app.schemas.job_progress import (
     ProgressLogList,
     ResumeJobRequest,
 )
+from app.schemas.export import (
+    ExportFormat,
+    ExportOptions,
+    ExportPreviewRequest,
+    ExportPreviewResponse,
+    ExportRequest,
+    ExportResponse,
+)
+from app.schemas.citation import (
+    Citation,
+    CitationRequest,
+    CitationResponse,
+    CitationStyle,
+    CitationStyleInfo,
+    CitationStylesResponse,
+    DocumentCitations,
+)
+from app.schemas.advanced_search import (
+    AdvancedSearchFilters,
+    AdvancedSearchRequest,
+    AdvancedSearchResponse,
+    DateFilter,
+    MetricsFilter,
+    SearchFacets,
+)
+from app.schemas.analytics import (
+    AnalyticsDashboard,
+    AnalyticsOverview,
+    AnalyticsTrends,
+    AnalyticsAuthors,
+    AnalyticsKeywords,
+    AuthorStats,
+    DocumentTypeStats,
+    KeywordStats,
+    PublicationTrend,
+    SourceStats,
+)
 
 __all__ = [
     # Health
@@ -150,4 +187,37 @@ __all__ = [
     "ProgressLogList",
     "JobProgressSummary",
     "ResumeJobRequest",
+    # Export
+    "ExportFormat",
+    "ExportOptions",
+    "ExportRequest",
+    "ExportResponse",
+    "ExportPreviewRequest",
+    "ExportPreviewResponse",
+    # Citation
+    "CitationStyle",
+    "CitationStyleInfo",
+    "CitationRequest",
+    "CitationResponse",
+    "Citation",
+    "DocumentCitations",
+    "CitationStylesResponse",
+    # Advanced Search
+    "AdvancedSearchFilters",
+    "AdvancedSearchRequest",
+    "AdvancedSearchResponse",
+    "DateFilter",
+    "MetricsFilter",
+    "SearchFacets",
+    # Analytics
+    "AnalyticsOverview",
+    "AnalyticsDashboard",
+    "AnalyticsTrends",
+    "AnalyticsAuthors",
+    "AnalyticsKeywords",
+    "PublicationTrend",
+    "AuthorStats",
+    "KeywordStats",
+    "SourceStats",
+    "DocumentTypeStats",
 ]
