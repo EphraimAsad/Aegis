@@ -2,7 +2,7 @@
 
 from collections import Counter
 
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.document import Document, DocumentStatus
@@ -166,7 +166,7 @@ class AdvancedSearchService:
 
         # Boolean flags
         if filters.open_access_only:
-            query = query.where(Document.is_open_access == True)
+            query = query.where(Document.is_open_access.is_(True))
 
         if filters.has_full_text is not None:
             if filters.has_full_text:
@@ -181,10 +181,10 @@ class AdvancedSearchService:
                 query = query.where(Document.summary.is_(None))
 
         if filters.exclude_preprints:
-            query = query.where(Document.is_preprint == False)
+            query = query.where(Document.is_preprint.is_(False))
 
         if filters.exclude_retracted:
-            query = query.where(Document.is_retracted == False)
+            query = query.where(Document.is_retracted.is_(False))
 
         # Sources filter
         if filters.sources:

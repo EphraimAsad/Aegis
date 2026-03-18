@@ -1,6 +1,5 @@
 """Schemas for advanced search functionality."""
 
-from datetime import date
 
 from pydantic import BaseModel, Field
 

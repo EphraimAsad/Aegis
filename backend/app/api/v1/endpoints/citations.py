@@ -35,9 +35,9 @@ async def format_citations(
         )
         return result
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.get("/document/{document_id}", response_model=DocumentCitations)
@@ -65,7 +65,7 @@ async def get_document_citations(
             raise HTTPException(
                 status_code=400,
                 detail=f"Invalid style. Available styles: {[s.value for s in CitationStyle]}",
-            )
+            ) from e
 
     try:
         result = await service.get_document_citations(
@@ -74,9 +74,9 @@ async def get_document_citations(
         )
         return result
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.get("/styles", response_model=CitationStylesResponse)
@@ -87,8 +87,6 @@ async def list_citation_styles() -> CitationStylesResponse:
     Returns information about each supported citation style with examples.
     """
     # We don't need a db session for this static data
-    from app.services.citation import CitationService
-    from app.db.session import get_db
 
     # Create a service with a mock session just to get styles
     # Actually, get_available_styles doesn't need db, but service requires it

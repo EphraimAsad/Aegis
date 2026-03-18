@@ -10,7 +10,7 @@ from typing import Any
 
 from app.config import get_settings
 from app.core.exceptions import ProviderNotFoundError
-from app.providers.base import BaseProvider, ProviderCapabilities
+from app.providers.base import BaseProvider
 
 
 class ProviderManager:

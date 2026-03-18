@@ -1,16 +1,14 @@
 """Celery tasks for research workflow with progress logging and checkpointing."""
 
 import traceback
-from datetime import datetime
-from typing import Any
 
-from celery import chain, chord, group, shared_task
+from celery import shared_task
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db.session import get_sync_session
 from app.models.document import Document, DocumentStatus
-from app.models.job import Job, JobStatus, JobType
+from app.models.job import Job, JobStatus
 from app.models.project import Project, ProjectStatus
 from app.services.job_progress import JobProgressService
 

@@ -3,7 +3,6 @@
 import asyncio
 from typing import Any
 
-from app.config import get_settings
 from app.schemas.paper import (
     AggregatedSearchResult,
     Paper,
@@ -153,7 +152,7 @@ class SourceManager:
         total_from_sources: dict[str, int] = {}
         errors: dict[str, str] = {}
 
-        for source, result in zip(active_sources, results):
+        for source, result in zip(active_sources, results, strict=False):
             if isinstance(result, Exception):
                 errors[source.name] = str(result)
             elif isinstance(result, PaperSearchResult):
@@ -188,7 +187,7 @@ class SourceManager:
         """Search a single source with error handling."""
         try:
             return await source.search(query, filters, page, page_size)
-        except Exception as e:
+        except Exception:
             # Return empty result on error
             return PaperSearchResult(
                 papers=[],
@@ -313,8 +312,6 @@ def _initialize_default_sources(manager: SourceManager) -> None:
     Args:
         manager: The source manager to initialize
     """
-    settings = get_settings()
-
     # Register OpenAlex (no API key required)
     from app.sources.openalex import OpenAlexAdapter
     manager.register(OpenAlexAdapter())

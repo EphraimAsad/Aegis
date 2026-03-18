@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectinload
 
 from app.core.exceptions import NotFoundError, ValidationError
 from app.models.job import Job, JobPriority, JobStatus, JobType
-from app.schemas.job import JobCreate, ResearchJobConfig
+from app.schemas.job import ResearchJobConfig
 
 
 class JobService:

@@ -5,8 +5,9 @@ The abstraction allows the application to work with any provider transparently.
 """
 
 from abc import ABC, abstractmethod
+from collections.abc import AsyncIterator
 from enum import Enum
-from typing import Any, AsyncIterator
+from typing import Any
 
 from pydantic import BaseModel, Field
 

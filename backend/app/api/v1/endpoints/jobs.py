@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
-from app.models.job import JobPriority, JobStatus, JobType
+from app.models.job import JobStatus, JobType
 from app.schemas.job import (
     BatchProcessRequest,
     BatchProcessResponse,
@@ -12,7 +12,6 @@ from app.schemas.job import (
     JobListResponse,
     JobStatsResponse,
     JobSummary,
-    ResearchJobConfig,
     StartResearchJobRequest,
     StartResearchJobResponse,
 )
@@ -137,7 +136,7 @@ async def get_job(
             max_retries=job.max_retries,
         )
     except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
 
 
 @router.post("/{job_id}/cancel", response_model=JobDetail)
@@ -185,7 +184,7 @@ async def cancel_job(
             max_retries=job.max_retries,
         )
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post("/{job_id}/retry", response_model=JobDetail)
@@ -245,7 +244,7 @@ async def retry_job(
             max_retries=job.max_retries,
         )
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post("/research", response_model=StartResearchJobResponse)
@@ -281,7 +280,7 @@ async def start_research_job(
         )
 
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post("/batch-process", response_model=BatchProcessResponse)
@@ -300,6 +299,7 @@ async def start_batch_process(
 
     # Count documents to process
     from sqlalchemy import func, select
+
     from app.models.document import Document, DocumentStatus
 
     query = select(func.count(Document.id)).where(
@@ -416,7 +416,7 @@ async def get_job_progress_summary(
         summary = await progress_service.get_progress_summary(job_id)
         return JobProgressSummary(**summary)
     except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
 
 
 @router.post("/{job_id}/resume", response_model=StartResearchJobResponse)
@@ -499,7 +499,7 @@ async def resume_job(
                 job_id=job.id,
                 celery_task_id=task.id,
                 status=JobStatus.PENDING,
-                message=f"Search/collect job resumed",
+                message="Search/collect job resumed",
             )
 
         elif job.job_type == JobType.ANALYZE_COLLECTION:
@@ -521,7 +521,7 @@ async def resume_job(
                 job_id=job.id,
                 celery_task_id=task.id,
                 status=JobStatus.PENDING,
-                message=f"Process collection job resumed",
+                message="Process collection job resumed",
             )
 
         else:
@@ -533,7 +533,7 @@ async def resume_job(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.get("/project/{project_id}/active")

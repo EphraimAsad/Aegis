@@ -130,7 +130,7 @@ class OpenAlexAdapter(BaseSourceAdapter):
                 page_size=page_size,
                 has_more=page * page_size < total,
             )
-        except Exception as e:
+        except Exception:
             return PaperSearchResult(
                 papers=[],
                 total_results=0,

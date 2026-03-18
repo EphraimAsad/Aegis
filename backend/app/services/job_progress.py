@@ -1,7 +1,6 @@
 """Service for managing job progress logs (agent memory)."""
 
 from datetime import datetime
-from typing import Any
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -362,7 +361,7 @@ class JobProgressService:
         result = self.db.execute(
             select(JobProgressLog)
             .where(JobProgressLog.job_id == job_id)
-            .where(JobProgressLog.is_checkpoint == True)
+            .where(JobProgressLog.is_checkpoint.is_(True))
             .order_by(JobProgressLog.sequence.desc())
             .limit(1)
         )
@@ -385,7 +384,7 @@ class JobProgressService:
         if phase:
             query = query.where(JobProgressLog.phase == phase)
         if checkpoints_only:
-            query = query.where(JobProgressLog.is_checkpoint == True)
+            query = query.where(JobProgressLog.is_checkpoint.is_(True))
 
         query = query.order_by(JobProgressLog.sequence.asc())
         query = query.offset(offset).limit(limit)
@@ -445,7 +444,7 @@ class JobProgressService:
         result = await self.db.execute(
             select(JobProgressLog)
             .where(JobProgressLog.job_id == job_id)
-            .where(JobProgressLog.is_checkpoint == True)
+            .where(JobProgressLog.is_checkpoint.is_(True))
             .order_by(JobProgressLog.sequence.desc())
             .limit(1)
         )
@@ -468,7 +467,7 @@ class JobProgressService:
         if phase:
             query = query.where(JobProgressLog.phase == phase)
         if checkpoints_only:
-            query = query.where(JobProgressLog.is_checkpoint == True)
+            query = query.where(JobProgressLog.is_checkpoint.is_(True))
 
         query = query.order_by(JobProgressLog.sequence.asc())
 

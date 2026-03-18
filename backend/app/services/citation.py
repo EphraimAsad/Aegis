@@ -369,7 +369,7 @@ class CitationService:
             return ""
 
         formatted = []
-        for i, author in enumerate(authors[:20]):  # APA allows up to 20 authors
+        for author in authors[:20]:  # APA allows up to 20 authors
             name = self._get_author_name(author)
             parts = name.split()
             if len(parts) >= 2:

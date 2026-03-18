@@ -3,9 +3,8 @@
 from fastapi import APIRouter, HTTPException
 
 from app.core.exceptions import ProviderError, ProviderNotFoundError
-from app.providers import Message, ChatSettings, get_provider_manager
+from app.providers import ChatSettings, Message, get_provider_manager
 from app.schemas.provider import (
-    ChatMessageRequest,
     ChatRequest,
     ChatResponseSchema,
     EmbeddingRequest,
@@ -86,7 +85,7 @@ async def get_provider(provider_name: str) -> ProviderInfo:
             capabilities=ProviderCapabilitiesResponse(**info["capabilities"]),
         )
     except ProviderNotFoundError as e:
-        raise HTTPException(status_code=404, detail=e.message)
+        raise HTTPException(status_code=404, detail=e.message) from e
 
 
 @router.get("/{provider_name}/models", response_model=ModelListResponse)
@@ -104,7 +103,7 @@ async def list_provider_models(provider_name: str) -> ModelListResponse:
         models = await provider.list_models()
         return ModelListResponse(provider=provider_name, models=models)
     except ProviderNotFoundError as e:
-        raise HTTPException(status_code=404, detail=e.message)
+        raise HTTPException(status_code=404, detail=e.message) from e
 
 
 @router.post("/chat", response_model=ChatResponseSchema)
@@ -140,9 +139,9 @@ async def chat_completion(request: ChatRequest) -> ChatResponseSchema:
             usage=response.usage,
         )
     except ProviderNotFoundError as e:
-        raise HTTPException(status_code=404, detail=e.message)
+        raise HTTPException(status_code=404, detail=e.message) from e
     except ProviderError as e:
-        raise HTTPException(status_code=502, detail=e.message)
+        raise HTTPException(status_code=502, detail=e.message) from e
 
 
 @router.post("/embed", response_model=EmbeddingResponseSchema)
@@ -173,6 +172,6 @@ async def generate_embeddings(request: EmbeddingRequest) -> EmbeddingResponseSch
             usage=response.usage,
         )
     except ProviderNotFoundError as e:
-        raise HTTPException(status_code=404, detail=e.message)
+        raise HTTPException(status_code=404, detail=e.message) from e
     except ProviderError as e:
-        raise HTTPException(status_code=502, detail=e.message)
+        raise HTTPException(status_code=502, detail=e.message) from e

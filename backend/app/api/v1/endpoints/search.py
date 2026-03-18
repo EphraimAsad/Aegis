@@ -80,11 +80,11 @@ async def search_papers(
         for dt in document_types.split(","):
             try:
                 doc_types.append(DocumentType(dt.strip()))
-            except ValueError:
+            except ValueError as e:
                 raise HTTPException(
                     status_code=400,
                     detail=f"Invalid document type: {dt}. Valid types: {[t.value for t in DocumentType]}",
-                )
+                ) from e
 
     # Build filters
     filters = SearchFilters(
@@ -182,4 +182,4 @@ async def search_single_source(
         raise HTTPException(
             status_code=502,
             detail=f"Error searching {source_name}: {str(e)}",
-        )
+        ) from e

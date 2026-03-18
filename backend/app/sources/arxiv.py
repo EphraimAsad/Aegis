@@ -4,18 +4,14 @@ arXiv is a free distribution service and open-access archive for scholarly artic
 API Documentation: https://info.arxiv.org/help/api/index.html
 """
 
-import re
 import xml.etree.ElementTree as ET
-from datetime import date, datetime
+from datetime import datetime
 from typing import Any
-
-import httpx
 
 from app.schemas.paper import (
     Author,
     DocumentType,
     Identifier,
-    Journal,
     Paper,
     PaperSearchResult,
     SearchFilters,
@@ -119,7 +115,7 @@ class ArxivAdapter(BaseSourceAdapter):
                 page_size=page_size,
                 has_more=page * page_size < total,
             )
-        except Exception as e:
+        except Exception:
             return PaperSearchResult(
                 papers=[],
                 total_results=0,

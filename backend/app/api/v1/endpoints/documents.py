@@ -5,6 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
 from app.models.document import DocumentStatus
+from app.schemas.advanced_search import (
+    AdvancedSearchRequest,
+    AdvancedSearchResponse,
+)
 from app.schemas.document import (
     AddPaperRequest,
     BulkAddPapersRequest,
@@ -21,18 +25,13 @@ from app.schemas.document import (
     SemanticSearchResponse,
     SimilarChunkResult,
 )
+from app.services.advanced_search import AdvancedSearchService
 from app.services.chunking import ChunkingStrategy
 from app.services.document import DocumentService
 from app.services.embedding import get_embedding_service
 from app.services.retrieval import get_retrieval_service
 from app.services.summarization import SummaryLevel, get_summarization_service
 from app.services.tagging import get_tagging_service
-from app.services.advanced_search import AdvancedSearchService
-from app.schemas.advanced_search import (
-    AdvancedSearchFilters,
-    AdvancedSearchRequest,
-    AdvancedSearchResponse,
-)
 from app.sources import get_source_manager
 
 router = APIRouter()
@@ -95,7 +94,7 @@ async def add_paper_from_search(
         await db.commit()
         return DocumentResponse.model_validate(document)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post("/bulk-add", response_model=BulkAddPapersResponse)
@@ -214,7 +213,7 @@ async def get_document(
         document = await service.get(document_id)
         return DocumentResponse.model_validate(document)
     except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
 
 
 @router.patch("/{document_id}", response_model=DocumentResponse)
@@ -232,7 +231,7 @@ async def update_document(
         await db.commit()
         return DocumentResponse.model_validate(document)
     except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
 
 
 @router.delete("/{document_id}", status_code=204)
@@ -248,7 +247,7 @@ async def delete_document(
         await service.delete(document_id)
         await db.commit()
     except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
 
 
 @router.get("/{document_id}/chunks", response_model=list[DocumentChunkResponse])
@@ -342,7 +341,7 @@ async def process_document(
         )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/{document_id}/summarize")
@@ -371,7 +370,7 @@ async def summarize_document(
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/{document_id}/auto-tag")
@@ -399,7 +398,7 @@ async def auto_tag_document(
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/stats/{project_id}")
@@ -515,4 +514,4 @@ async def advanced_search(
             sort_order=request.sort_order,
         )
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e

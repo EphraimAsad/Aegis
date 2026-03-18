@@ -5,15 +5,15 @@ Supports batch processing and caching.
 """
 
 import asyncio
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Sequence
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.document import Document, DocumentChunk, DocumentStatus
+from app.models.document import DocumentChunk, DocumentStatus
 from app.providers import get_provider_manager
 from app.providers.base import BaseProvider
-from app.services.chunking import Chunk, ChunkingService, ChunkingStrategy
+from app.services.chunking import ChunkingService, ChunkingStrategy
 
 
 @dataclass
@@ -161,7 +161,7 @@ class EmbeddingService:
                 )
 
                 # Store results
-                for chunk, embedding in zip(batch, response.embeddings):
+                for chunk, embedding in zip(batch, response.embeddings, strict=False):
                     successful.append(EmbeddingResult(
                         chunk_id=chunk.id,
                         embedding=embedding,
@@ -256,7 +256,6 @@ class EmbeddingService:
             embedding_result = await self.embed_chunks(db_chunks, batch_size)
 
             # Store embeddings
-            provider = await self._get_provider()
             for result in embedding_result.successful:
                 await doc_service.update_chunk_embedding(
                     chunk_id=result.chunk_id,

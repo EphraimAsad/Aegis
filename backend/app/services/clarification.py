@@ -12,10 +12,9 @@ from app.models.clarification import (
     QuestionCategory,
     QuestionType,
 )
-from app.models.project import Project, ProjectStatus
-from app.providers import Message, MessageRole, ChatSettings, get_provider_manager
+from app.models.project import Project
+from app.providers import ChatSettings, Message, MessageRole, get_provider_manager
 from app.schemas.clarification import AnswerQuestionRequest
-
 
 # Prompt template for generating clarification questions
 CLARIFICATION_PROMPT = '''You are an expert research assistant helping to clarify a research project's scope.
@@ -194,12 +193,12 @@ class ClarificationService:
             raise ProviderError(
                 "Failed to parse AI response as JSON",
                 details={"error": str(e)},
-            )
+            ) from e
         except Exception as e:
             raise ProviderError(
                 f"Failed to generate clarification questions: {str(e)}",
                 details={"error": str(e)},
-            )
+            ) from e
 
     async def answer_question(
         self,

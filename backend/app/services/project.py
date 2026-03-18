@@ -5,11 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.exceptions import NotFoundError, ValidationError
-from app.models.clarification import ClarificationQuestion
 from app.models.project import Project, ProjectStatus
 from app.schemas.project import (
     ProjectCreateRequest,
-    ProjectScope,
     ProjectScopeUpdateRequest,
     ProjectUpdateRequest,
 )

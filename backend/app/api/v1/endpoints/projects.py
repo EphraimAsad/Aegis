@@ -97,7 +97,7 @@ async def get_project(
         project = await service.get(project_id)
         return _project_to_detail(project)
     except NotFoundError as e:
-        raise HTTPException(status_code=404, detail=e.message)
+        raise HTTPException(status_code=404, detail=e.message) from e
 
 
 @router.patch("/{project_id}", response_model=ProjectDetail)
@@ -118,7 +118,7 @@ async def update_project(
         await db.commit()
         return _project_to_detail(project)
     except NotFoundError as e:
-        raise HTTPException(status_code=404, detail=e.message)
+        raise HTTPException(status_code=404, detail=e.message) from e
 
 
 @router.delete("/{project_id}", status_code=204)
@@ -137,7 +137,7 @@ async def delete_project(
         await service.delete(project_id)
         await db.commit()
     except NotFoundError as e:
-        raise HTTPException(status_code=404, detail=e.message)
+        raise HTTPException(status_code=404, detail=e.message) from e
 
 
 # =============================================================================
@@ -164,7 +164,7 @@ async def update_project_scope(
         await db.commit()
         return _project_to_detail(project)
     except NotFoundError as e:
-        raise HTTPException(status_code=404, detail=e.message)
+        raise HTTPException(status_code=404, detail=e.message) from e
 
 
 # =============================================================================
@@ -197,9 +197,9 @@ async def update_project_status(
         await db.commit()
         return _project_to_detail(project)
     except NotFoundError as e:
-        raise HTTPException(status_code=404, detail=e.message)
+        raise HTTPException(status_code=404, detail=e.message) from e
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=e.message)
+        raise HTTPException(status_code=400, detail=e.message) from e
 
 
 # =============================================================================
@@ -241,11 +241,11 @@ async def start_clarification(
             unanswered=len(questions) - answered,
         )
     except NotFoundError as e:
-        raise HTTPException(status_code=404, detail=e.message)
+        raise HTTPException(status_code=404, detail=e.message) from e
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=e.message)
+        raise HTTPException(status_code=400, detail=e.message) from e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/{project_id}/questions", response_model=ClarificationQuestionsListResponse)
@@ -261,7 +261,7 @@ async def get_clarification_questions(
     try:
         await project_service.get(project_id)
     except NotFoundError as e:
-        raise HTTPException(status_code=404, detail=e.message)
+        raise HTTPException(status_code=404, detail=e.message) from e
 
     clarification_service = ClarificationService(db)
     questions = await clarification_service.get_questions(project_id)
@@ -301,7 +301,7 @@ async def answer_clarification_question(
         await db.commit()
         return _question_to_response(question)
     except NotFoundError as e:
-        raise HTTPException(status_code=404, detail=e.message)
+        raise HTTPException(status_code=404, detail=e.message) from e
 
 
 @router.get("/{project_id}/clarification-status", response_model=ClarificationStatusResponse)
@@ -320,7 +320,7 @@ async def get_clarification_status(
     try:
         await project_service.get(project_id)
     except NotFoundError as e:
-        raise HTTPException(status_code=404, detail=e.message)
+        raise HTTPException(status_code=404, detail=e.message) from e
 
     clarification_service = ClarificationService(db)
     status = await clarification_service.get_status(project_id)

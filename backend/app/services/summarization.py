@@ -10,7 +10,7 @@ from enum import Enum
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.document import Document, DocumentStatus
+from app.models.document import Document
 from app.providers import get_provider_manager
 from app.providers.base import BaseProvider
 

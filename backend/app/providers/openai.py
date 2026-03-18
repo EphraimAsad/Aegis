@@ -3,7 +3,8 @@
 Supports OpenAI's API and OpenAI-compatible endpoints (e.g., Azure OpenAI, local proxies).
 """
 
-from typing import Any, AsyncIterator
+from collections.abc import AsyncIterator
+from typing import Any
 
 import httpx
 

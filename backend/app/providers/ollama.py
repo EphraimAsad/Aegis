@@ -4,7 +4,8 @@ Ollama is the default local LLM provider for Aegis development.
 API Documentation: https://github.com/ollama/ollama/blob/main/docs/api.md
 """
 
-from typing import Any, AsyncIterator
+from collections.abc import AsyncIterator
+from typing import Any
 
 import httpx
 
@@ -15,7 +16,6 @@ from app.providers.base import (
     ChatSettings,
     EmbeddingResponse,
     Message,
-    MessageRole,
     ProviderCapabilities,
 )
 

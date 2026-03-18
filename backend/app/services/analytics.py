@@ -2,10 +2,10 @@
 
 from collections import Counter, defaultdict
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.document import Document, DocumentChunk, DocumentStatus
+from app.models.document import Document, DocumentStatus
 from app.schemas.analytics import (
     AnalyticsDashboard,
     AnalyticsOverview,

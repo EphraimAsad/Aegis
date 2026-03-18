@@ -31,7 +31,7 @@ async def get_overview(
     try:
         return await service.get_overview(project_id)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.get("/dashboard", response_model=AnalyticsDashboard)
@@ -49,7 +49,7 @@ async def get_dashboard(
     try:
         return await service.get_dashboard(project_id)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.get("/trends", response_model=AnalyticsTrends)
@@ -79,7 +79,7 @@ async def get_publication_trends(
             to_year=to_year,
         )
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.get("/authors", response_model=AnalyticsAuthors)
@@ -106,7 +106,7 @@ async def get_top_authors(
             total_unique_authors=total,
         )
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.get("/keywords", response_model=AnalyticsKeywords)
@@ -133,4 +133,4 @@ async def get_keywords(
             tags=tags,
         )
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e

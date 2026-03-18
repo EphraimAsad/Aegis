@@ -9,7 +9,6 @@ from app.schemas.export import (
     EXPORT_CONTENT_TYPES,
     ExportFormat,
     ExportOptions,
-    ExportPreviewRequest,
     ExportPreviewResponse,
     ExportRequest,
     ExportResponse,
@@ -41,7 +40,7 @@ async def export_documents(
         )
         return result
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post("/download")
@@ -73,7 +72,7 @@ async def download_export(
             },
         )
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.get("/preview", response_model=ExportPreviewResponse)
@@ -112,7 +111,7 @@ async def preview_export(
             format=format,
         )
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.get("/formats")

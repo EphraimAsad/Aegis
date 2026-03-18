@@ -1,7 +1,6 @@
 """Celery tasks for document processing."""
 
 import traceback
-from datetime import datetime
 
 from celery import shared_task
 from sqlalchemy import select
@@ -9,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_sync_session
 from app.models.document import Document, DocumentStatus
-from app.models.job import Job, JobStatus, JobType
+from app.models.job import Job
 
 
 def get_db_session() -> Session:
@@ -313,7 +312,7 @@ def batch_process_task(
         processed = 0
         failed = 0
 
-        for i, doc in enumerate(documents):
+        for doc in documents:
             try:
                 # Process document
                 doc.status = DocumentStatus.PROCESSING
