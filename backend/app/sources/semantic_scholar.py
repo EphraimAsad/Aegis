@@ -179,10 +179,12 @@ class SemanticScholarAdapter(BaseSourceAdapter):
         # Extract authors
         authors = []
         for author_data in raw.get("authors", []):
-            authors.append(Author(
-                name=author_data.get("name", "Unknown"),
-                affiliations=[],
-            ))
+            authors.append(
+                Author(
+                    name=author_data.get("name", "Unknown"),
+                    affiliations=[],
+                )
+            )
 
         # Extract publication date
         pub_date = None
@@ -208,7 +210,9 @@ class SemanticScholarAdapter(BaseSourceAdapter):
         if external_ids.get("PubMed"):
             identifiers.append(Identifier(type="pmid", value=external_ids["PubMed"]))
         if external_ids.get("CorpusId"):
-            identifiers.append(Identifier(type="s2", value=str(external_ids["CorpusId"])))
+            identifiers.append(
+                Identifier(type="s2", value=str(external_ids["CorpusId"]))
+            )
 
         # Determine document type
         pub_types = raw.get("publicationTypes", [])
@@ -243,10 +247,12 @@ class SemanticScholarAdapter(BaseSourceAdapter):
         )
 
         # Add source info
-        paper.add_source(self._create_source_info(
-            source_id=raw.get("paperId", ""),
-            url=f"https://www.semanticscholar.org/paper/{raw.get('paperId', '')}",
-        ))
+        paper.add_source(
+            self._create_source_info(
+                source_id=raw.get("paperId", ""),
+                url=f"https://www.semanticscholar.org/paper/{raw.get('paperId', '')}",
+            )
+        )
 
         paper.dedupe_key = paper.generate_dedupe_key()
         return paper

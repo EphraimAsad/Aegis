@@ -116,7 +116,9 @@ class OpenAlexAdapter(BaseSourceAdapter):
             params["mailto"] = self._email
 
         try:
-            data = await self._make_request("GET", f"{self.base_url}/works", params=params)
+            data = await self._make_request(
+                "GET", f"{self.base_url}/works", params=params
+            )
 
             papers = [self._normalize_paper(work) for work in data.get("results", [])]
             total = data.get("meta", {}).get("count", 0)
@@ -177,11 +179,13 @@ class OpenAlexAdapter(BaseSourceAdapter):
                 for inst in authorship.get("institutions", [])
                 if inst.get("display_name")
             ]
-            authors.append(Author(
-                name=author_data.get("display_name", "Unknown"),
-                orcid=author_data.get("orcid"),
-                affiliations=affiliations,
-            ))
+            authors.append(
+                Author(
+                    name=author_data.get("display_name", "Unknown"),
+                    orcid=author_data.get("orcid"),
+                    affiliations=affiliations,
+                )
+            )
 
         # Extract publication date
         pub_date = None
@@ -206,7 +210,9 @@ class OpenAlexAdapter(BaseSourceAdapter):
         # Build identifiers
         identifiers = []
         if raw.get("doi"):
-            identifiers.append(Identifier(type="doi", value=raw["doi"].replace("https://doi.org/", "")))
+            identifiers.append(
+                Identifier(type="doi", value=raw["doi"].replace("https://doi.org/", ""))
+            )
         if raw.get("ids", {}).get("pmid"):
             identifiers.append(Identifier(type="pmid", value=raw["ids"]["pmid"]))
 
@@ -237,7 +243,11 @@ class OpenAlexAdapter(BaseSourceAdapter):
             year=year,
             journal=journal,
             language=raw.get("language"),
-            doi=raw.get("doi", "").replace("https://doi.org/", "") if raw.get("doi") else None,
+            doi=(
+                raw.get("doi", "").replace("https://doi.org/", "")
+                if raw.get("doi")
+                else None
+            ),
             identifiers=identifiers,
             url=raw.get("id"),
             pdf_url=primary_location.get("pdf_url"),
@@ -252,10 +262,12 @@ class OpenAlexAdapter(BaseSourceAdapter):
         )
 
         # Add source info
-        paper.add_source(self._create_source_info(
-            source_id=raw.get("id", "").replace("https://openalex.org/", ""),
-            url=raw.get("id"),
-        ))
+        paper.add_source(
+            self._create_source_info(
+                source_id=raw.get("id", "").replace("https://openalex.org/", ""),
+                url=raw.get("id"),
+            )
+        )
 
         paper.dedupe_key = paper.generate_dedupe_key()
         return paper

@@ -126,8 +126,7 @@ class OpenAIProvider(BaseProvider):
 
         # Convert messages to OpenAI format
         openai_messages = [
-            {"role": msg.role.value, "content": msg.content}
-            for msg in messages
+            {"role": msg.role.value, "content": msg.content} for msg in messages
         ]
 
         # Build request payload
@@ -319,8 +318,7 @@ class OpenAIProvider(BaseProvider):
         settings = settings or ChatSettings()
 
         openai_messages = [
-            {"role": msg.role.value, "content": msg.content}
-            for msg in messages
+            {"role": msg.role.value, "content": msg.content} for msg in messages
         ]
 
         payload: dict[str, Any] = {
@@ -335,7 +333,9 @@ class OpenAIProvider(BaseProvider):
             payload["max_tokens"] = settings.max_tokens
 
         try:
-            async with client.stream("POST", "/chat/completions", json=payload) as response:
+            async with client.stream(
+                "POST", "/chat/completions", json=payload
+            ) as response:
                 response.raise_for_status()
                 async for line in response.aiter_lines():
                     if line.startswith("data: "):
@@ -343,6 +343,7 @@ class OpenAIProvider(BaseProvider):
                         if data_str == "[DONE]":
                             break
                         import json
+
                         data = json.loads(data_str)
                         if "choices" in data and len(data["choices"]) > 0:
                             delta = data["choices"][0].get("delta", {})

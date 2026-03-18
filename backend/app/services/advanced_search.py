@@ -53,7 +53,9 @@ class AdvancedSearchService:
         query = self._apply_filters(query, filters)
 
         # Get total count before pagination
-        count_query = select(func.count(Document.id)).where(Document.project_id == project_id)
+        count_query = select(func.count(Document.id)).where(
+            Document.project_id == project_id
+        )
         count_query = self._apply_filters(count_query, filters)
         total_result = await self.db.execute(count_query)
         total = total_result.scalar() or 0
@@ -206,13 +208,19 @@ class AdvancedSearchService:
             order_col = Document.year.desc() if desc else Document.year.asc()
             query = query.order_by(order_col.nullslast())
         elif sort_by == "citations":
-            order_col = Document.citation_count.desc() if desc else Document.citation_count.asc()
+            order_col = (
+                Document.citation_count.desc()
+                if desc
+                else Document.citation_count.asc()
+            )
             query = query.order_by(order_col.nullslast())
         elif sort_by == "title":
             order_col = Document.title.desc() if desc else Document.title.asc()
             query = query.order_by(order_col)
         elif sort_by == "created":
-            order_col = Document.created_at.desc() if desc else Document.created_at.asc()
+            order_col = (
+                Document.created_at.desc() if desc else Document.created_at.asc()
+            )
             query = query.order_by(order_col)
         else:
             # Default: relevance (by year descending, then citation count)

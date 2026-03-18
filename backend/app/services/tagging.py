@@ -38,21 +38,47 @@ class TagSuggestion:
 # Predefined research categories
 RESEARCH_CATEGORIES = {
     "methodology": [
-        "experimental", "theoretical", "computational", "qualitative",
-        "quantitative", "mixed-methods", "meta-analysis", "review",
-        "case-study", "survey", "longitudinal", "cross-sectional",
+        "experimental",
+        "theoretical",
+        "computational",
+        "qualitative",
+        "quantitative",
+        "mixed-methods",
+        "meta-analysis",
+        "review",
+        "case-study",
+        "survey",
+        "longitudinal",
+        "cross-sectional",
     ],
     "domain": [
-        "biomedical", "clinical", "engineering", "physics", "chemistry",
-        "biology", "computer-science", "mathematics", "social-science",
-        "economics", "psychology", "environmental", "materials",
+        "biomedical",
+        "clinical",
+        "engineering",
+        "physics",
+        "chemistry",
+        "biology",
+        "computer-science",
+        "mathematics",
+        "social-science",
+        "economics",
+        "psychology",
+        "environmental",
+        "materials",
     ],
     "impact": [
-        "high-citation", "breakthrough", "foundational", "incremental",
-        "replication", "negative-results",
+        "high-citation",
+        "breakthrough",
+        "foundational",
+        "incremental",
+        "replication",
+        "negative-results",
     ],
     "access": [
-        "open-access", "preprint", "peer-reviewed", "retracted",
+        "open-access",
+        "preprint",
+        "peer-reviewed",
+        "retracted",
     ],
 }
 
@@ -150,34 +176,40 @@ class TaggingService:
             for keyword in document.keywords:
                 tag = self._normalize_tag(keyword)
                 if tag:
-                    suggestions.append(TagSuggestion(
-                        tag=tag,
-                        confidence=0.9,
-                        source=TagSource.AUTO_KEYWORDS,
-                    ))
+                    suggestions.append(
+                        TagSuggestion(
+                            tag=tag,
+                            confidence=0.9,
+                            source=TagSource.AUTO_KEYWORDS,
+                        )
+                    )
 
         # Convert subjects to tags
         if document.subjects:
             for subject in document.subjects:
                 tag = self._normalize_tag(subject)
                 if tag:
-                    suggestions.append(TagSuggestion(
-                        tag=tag,
-                        confidence=0.85,
-                        source=TagSource.SUBJECT,
-                    ))
+                    suggestions.append(
+                        TagSuggestion(
+                            tag=tag,
+                            confidence=0.85,
+                            source=TagSource.SUBJECT,
+                        )
+                    )
 
         # Convert MeSH terms to tags
         if document.mesh_terms:
             for mesh in document.mesh_terms:
                 tag = self._normalize_tag(mesh)
                 if tag:
-                    suggestions.append(TagSuggestion(
-                        tag=tag,
-                        confidence=0.95,
-                        source=TagSource.MESH,
-                        category="biomedical",
-                    ))
+                    suggestions.append(
+                        TagSuggestion(
+                            tag=tag,
+                            confidence=0.95,
+                            source=TagSource.MESH,
+                            category="biomedical",
+                        )
+                    )
 
         return suggestions
 
@@ -252,12 +284,14 @@ class TaggingService:
             for item in tags_data[:max_tags]:
                 tag = self._normalize_tag(item.get("tag", ""))
                 if tag:
-                    suggestions.append(TagSuggestion(
-                        tag=tag,
-                        confidence=float(item.get("confidence", 0.7)),
-                        source=TagSource.AUTO_AI,
-                        category=item.get("category"),
-                    ))
+                    suggestions.append(
+                        TagSuggestion(
+                            tag=tag,
+                            confidence=float(item.get("confidence", 0.7)),
+                            source=TagSource.AUTO_AI,
+                            category=item.get("category"),
+                        )
+                    )
 
             return suggestions
 
@@ -351,8 +385,13 @@ class TaggingService:
         seen_tags = set()
         final_tags = []
 
-        for suggestion in sorted(all_suggestions, key=lambda x: x.confidence, reverse=True):
-            if suggestion.tag not in seen_tags and suggestion.confidence >= min_confidence:
+        for suggestion in sorted(
+            all_suggestions, key=lambda x: x.confidence, reverse=True
+        ):
+            if (
+                suggestion.tag not in seen_tags
+                and suggestion.confidence >= min_confidence
+            ):
                 seen_tags.add(suggestion.tag)
                 final_tags.append(suggestion.tag)
 

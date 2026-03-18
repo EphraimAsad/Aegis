@@ -119,8 +119,7 @@ async def chat_completion(request: ChatRequest) -> ChatResponseSchema:
         provider = manager.get(request.provider)
 
         messages = [
-            Message(role=msg.role, content=msg.content)
-            for msg in request.messages
+            Message(role=msg.role, content=msg.content) for msg in request.messages
         ]
 
         settings = ChatSettings(

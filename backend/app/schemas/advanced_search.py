@@ -1,6 +1,5 @@
 """Schemas for advanced search functionality."""
 
-
 from pydantic import BaseModel, Field
 
 from app.schemas.document import DocumentSummary

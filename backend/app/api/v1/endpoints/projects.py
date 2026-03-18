@@ -248,7 +248,9 @@ async def start_clarification(
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-@router.get("/{project_id}/questions", response_model=ClarificationQuestionsListResponse)
+@router.get(
+    "/{project_id}/questions", response_model=ClarificationQuestionsListResponse
+)
 async def get_clarification_questions(
     project_id: int,
     db: DbSessionDep,
@@ -276,7 +278,10 @@ async def get_clarification_questions(
     )
 
 
-@router.put("/{project_id}/questions/{question_id}", response_model=ClarificationQuestionResponse)
+@router.put(
+    "/{project_id}/questions/{question_id}",
+    response_model=ClarificationQuestionResponse,
+)
 async def answer_clarification_question(
     project_id: int,
     question_id: int,
@@ -296,7 +301,9 @@ async def answer_clarification_question(
 
         # Verify the question belongs to the project
         if question.project_id != project_id:
-            raise HTTPException(status_code=404, detail="Question not found for this project")
+            raise HTTPException(
+                status_code=404, detail="Question not found for this project"
+            )
 
         await db.commit()
         return _question_to_response(question)
@@ -304,7 +311,9 @@ async def answer_clarification_question(
         raise HTTPException(status_code=404, detail=e.message) from e
 
 
-@router.get("/{project_id}/clarification-status", response_model=ClarificationStatusResponse)
+@router.get(
+    "/{project_id}/clarification-status", response_model=ClarificationStatusResponse
+)
 async def get_clarification_status(
     project_id: int,
     db: DbSessionDep,

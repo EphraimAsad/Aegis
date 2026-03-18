@@ -41,13 +41,15 @@ class CitationService:
         citations = []
         for doc in documents:
             formatted = self._format_citation(doc, style)
-            citations.append(Citation(
-                document_id=doc.id,
-                title=doc.title,
-                style=style,
-                formatted=formatted,
-                raw_components=self._get_raw_components(doc),
-            ))
+            citations.append(
+                Citation(
+                    document_id=doc.id,
+                    title=doc.title,
+                    style=style,
+                    formatted=formatted,
+                    raw_components=self._get_raw_components(doc),
+                )
+            )
 
         return CitationResponse(
             citations=citations,

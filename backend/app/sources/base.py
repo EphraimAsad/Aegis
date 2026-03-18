@@ -237,15 +237,18 @@ class BaseSourceAdapter(ABC):
                 last_error = e
                 if e.response.status_code == 429:  # Rate limited
                     import asyncio
-                    await asyncio.sleep(2 ** attempt)  # Exponential backoff
+
+                    await asyncio.sleep(2**attempt)  # Exponential backoff
                 elif e.response.status_code >= 500:
                     import asyncio
+
                     await asyncio.sleep(1)
                 else:
                     raise
             except httpx.RequestError as e:
                 last_error = e
                 import asyncio
+
                 await asyncio.sleep(1)
 
         raise last_error or Exception("Request failed after retries")

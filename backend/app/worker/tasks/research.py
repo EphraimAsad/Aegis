@@ -109,7 +109,9 @@ def run_research_job(
                     message=f"Resuming from checkpoint at step {start_step}: {restored_state['step_name']}",
                     data={
                         "checkpoint_step": start_step,
-                        "items_already_processed": len(restored_state["items_processed"]),
+                        "items_already_processed": len(
+                            restored_state["items_processed"]
+                        ),
                     },
                 )
                 job.status = JobStatus.RUNNING
@@ -182,7 +184,11 @@ def run_research_job(
             db.commit()
 
             max_per_source = config.get("max_papers_per_source", 100)
-            sources = config.get("sources") or ["openalex", "crossref", "semantic_scholar"]
+            sources = config.get("sources") or [
+                "openalex",
+                "crossref",
+                "semantic_scholar",
+            ]
 
             # Get search cursors if resuming
             search_cursors = {}
@@ -251,7 +257,9 @@ def run_research_job(
             job.update_progress(current_step=3, message="Collecting papers...")
             db.commit()
 
-            papers_collected = min(result["papers_found"], max_per_source * len(sources))
+            papers_collected = min(
+                result["papers_found"], max_per_source * len(sources)
+            )
             result["papers_collected"] = papers_collected
             job.items_total = papers_collected
 
@@ -298,11 +306,15 @@ def run_research_job(
             db.commit()
 
             # Get pending documents
-            pending_docs = db.execute(
-                select(Document)
-                .where(Document.project_id == project_id)
-                .where(Document.status == DocumentStatus.PENDING)
-            ).scalars().all()
+            pending_docs = (
+                db.execute(
+                    select(Document)
+                    .where(Document.project_id == project_id)
+                    .where(Document.status == DocumentStatus.PENDING)
+                )
+                .scalars()
+                .all()
+            )
 
             # Filter out already processed documents if resuming
             already_processed = set()
@@ -337,7 +349,9 @@ def run_research_job(
 
                     # Create checkpoint every N documents
                     if processed % checkpoint_interval == 0:
-                        remaining_ids = [d.id for d in pending_docs if d.id not in doc_ids_processed]
+                        remaining_ids = [
+                            d.id for d in pending_docs if d.id not in doc_ids_processed
+                        ]
                         result["papers_processed"] = processed
                         result["papers_failed"] = failed
 
@@ -369,10 +383,12 @@ def run_research_job(
                         },
                     )
 
-                    result["errors"].append({
-                        "document_id": doc.id,
-                        "error": str(e),
-                    })
+                    result["errors"].append(
+                        {
+                            "document_id": doc.id,
+                            "error": str(e),
+                        }
+                    )
                     db.commit()
 
             result["papers_processed"] = processed
@@ -511,7 +527,13 @@ def search_and_collect_task(
             job.mark_started()
             db.commit()
 
-        sources = sources or ["openalex", "crossref", "semantic_scholar", "arxiv", "pubmed"]
+        sources = sources or [
+            "openalex",
+            "crossref",
+            "semantic_scholar",
+            "arxiv",
+            "pubmed",
+        ]
 
         # Check for checkpoint
         restored_state = None
@@ -545,7 +567,9 @@ def search_and_collect_task(
         if restored_state:
             result.update(restored_state.get("accumulated_results", {}))
 
-        search_cursors = restored_state.get("search_cursors", {}) if restored_state else {}
+        search_cursors = (
+            restored_state.get("search_cursors", {}) if restored_state else {}
+        )
 
         total_found = 0
         for source in sources:
@@ -658,7 +682,9 @@ def process_collection_task(
         if resume_from_checkpoint:
             checkpoint = progress_service.get_latest_checkpoint_sync(job_id)
             if checkpoint and checkpoint.checkpoint_state:
-                already_processed = set(checkpoint.checkpoint_state.get("items_processed", []))
+                already_processed = set(
+                    checkpoint.checkpoint_state.get("items_processed", [])
+                )
                 progress_service.log_recovery(
                     job_id=job_id,
                     message=f"Resuming from checkpoint, {len(already_processed)} already processed",
@@ -666,11 +692,17 @@ def process_collection_task(
                 )
 
         # Get pending documents
-        documents = db.execute(
-            select(Document)
-            .where(Document.project_id == project_id)
-            .where(Document.status.in_([DocumentStatus.PENDING, DocumentStatus.ERROR]))
-        ).scalars().all()
+        documents = (
+            db.execute(
+                select(Document)
+                .where(Document.project_id == project_id)
+                .where(
+                    Document.status.in_([DocumentStatus.PENDING, DocumentStatus.ERROR])
+                )
+            )
+            .scalars()
+            .all()
+        )
 
         job.items_total = len(documents)
         db.commit()
@@ -717,7 +749,9 @@ def process_collection_task(
 
                 # Create checkpoint every N documents
                 if result["processed"] % checkpoint_interval == 0:
-                    remaining_ids = [d.id for d in documents if d.id not in doc_ids_processed]
+                    remaining_ids = [
+                        d.id for d in documents if d.id not in doc_ids_processed
+                    ]
                     progress_service.create_checkpoint(
                         job_id=job_id,
                         current_step=result["processed"],
@@ -732,10 +766,12 @@ def process_collection_task(
                 doc.status = DocumentStatus.ERROR
                 doc.error_message = str(e)
                 result["failed"] += 1
-                result["errors"].append({
-                    "document_id": doc.id,
-                    "error": str(e),
-                })
+                result["errors"].append(
+                    {
+                        "document_id": doc.id,
+                        "error": str(e),
+                    }
+                )
 
                 progress_service.log_error(
                     job_id=job_id,
@@ -809,11 +845,15 @@ def generate_synthesis_task(
         )
 
         # Get processed documents
-        documents = db.execute(
-            select(Document)
-            .where(Document.project_id == project_id)
-            .where(Document.status == DocumentStatus.READY)
-        ).scalars().all()
+        documents = (
+            db.execute(
+                select(Document)
+                .where(Document.project_id == project_id)
+                .where(Document.status == DocumentStatus.READY)
+            )
+            .scalars()
+            .all()
+        )
 
         result = {
             "project_id": project_id,

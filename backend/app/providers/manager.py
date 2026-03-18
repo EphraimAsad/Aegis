@@ -201,7 +201,11 @@ def _initialize_default_providers(manager: ProviderManager) -> None:
 
     ollama = OllamaProvider(
         base_url=settings.ollama_base_url,
-        default_model=settings.default_model if settings.default_provider == "ollama" else "llama2",
+        default_model=(
+            settings.default_model
+            if settings.default_provider == "ollama"
+            else "llama2"
+        ),
     )
     manager.register(ollama, set_default=(settings.default_provider == "ollama"))
 
@@ -211,7 +215,11 @@ def _initialize_default_providers(manager: ProviderManager) -> None:
 
         openai = OpenAIProvider(
             api_key=settings.openai_api_key,
-            default_model=settings.default_model if settings.default_provider == "openai" else "gpt-3.5-turbo",
+            default_model=(
+                settings.default_model
+                if settings.default_provider == "openai"
+                else "gpt-3.5-turbo"
+            ),
         )
         manager.register(openai, set_default=(settings.default_provider == "openai"))
 
@@ -221,9 +229,15 @@ def _initialize_default_providers(manager: ProviderManager) -> None:
 
         anthropic = AnthropicProvider(
             api_key=settings.anthropic_api_key,
-            default_model=settings.default_model if settings.default_provider == "anthropic" else "claude-3-5-sonnet-20241022",
+            default_model=(
+                settings.default_model
+                if settings.default_provider == "anthropic"
+                else "claude-3-5-sonnet-20241022"
+            ),
         )
-        manager.register(anthropic, set_default=(settings.default_provider == "anthropic"))
+        manager.register(
+            anthropic, set_default=(settings.default_provider == "anthropic")
+        )
 
 
 async def cleanup_providers() -> None:

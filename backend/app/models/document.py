@@ -72,7 +72,9 @@ class Document(Base):
     language: Mapped[str | None] = mapped_column(String(10), nullable=True)
 
     # Identifiers
-    doi: Mapped[str | None] = mapped_column(String(255), nullable=True, unique=True, index=True)
+    doi: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, unique=True, index=True
+    )
     identifiers: Mapped[list | None] = mapped_column(JSONB, nullable=True, default=list)
     # Format: [{"type": "pmid", "value": "12345678"}]
 

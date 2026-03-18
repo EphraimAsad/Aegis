@@ -24,16 +24,18 @@ class JobProgressService:
     def _get_next_sequence_sync(self, job_id: int) -> int:
         """Get the next sequence number for a job (sync)."""
         result = self.db.execute(
-            select(func.coalesce(func.max(JobProgressLog.sequence), 0))
-            .where(JobProgressLog.job_id == job_id)
+            select(func.coalesce(func.max(JobProgressLog.sequence), 0)).where(
+                JobProgressLog.job_id == job_id
+            )
         )
         return (result.scalar() or 0) + 1
 
     async def _get_next_sequence_async(self, job_id: int) -> int:
         """Get the next sequence number for a job (async)."""
         result = await self.db.execute(
-            select(func.coalesce(func.max(JobProgressLog.sequence), 0))
-            .where(JobProgressLog.job_id == job_id)
+            select(func.coalesce(func.max(JobProgressLog.sequence), 0)).where(
+                JobProgressLog.job_id == job_id
+            )
         )
         return (result.scalar() or 0) + 1
 
@@ -394,9 +396,13 @@ class JobProgressService:
 
     def get_progress_summary_sync(self, job_id: int) -> dict:
         """Get a summary of job progress (sync)."""
-        entries = self.db.execute(
-            select(JobProgressLog).where(JobProgressLog.job_id == job_id)
-        ).scalars().all()
+        entries = (
+            self.db.execute(
+                select(JobProgressLog).where(JobProgressLog.job_id == job_id)
+            )
+            .scalars()
+            .all()
+        )
 
         summary = {
             "job_id": job_id,

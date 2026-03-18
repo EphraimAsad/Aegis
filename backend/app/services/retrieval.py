@@ -60,6 +60,7 @@ class RetrievalService:
         """Get or create embedding service."""
         if self._embedding_service is None:
             from app.services.embedding import get_embedding_service
+
             self._embedding_service = get_embedding_service(self.db)
         return self._embedding_service
 
@@ -131,7 +132,9 @@ class RetrievalService:
             chunk_query = chunk_query.where(Document.id.in_(document_ids))
 
         if section_types:
-            chunk_query = chunk_query.where(DocumentChunk.section_type.in_(section_types))
+            chunk_query = chunk_query.where(
+                DocumentChunk.section_type.in_(section_types)
+            )
 
         result = await self.db.execute(chunk_query)
         rows = result.fetchall()
@@ -146,16 +149,18 @@ class RetrievalService:
             similarity = self._cosine_similarity(query_embedding, chunk_embedding)
 
             if similarity >= min_similarity:
-                scored_results.append(RetrievalResult(
-                    chunk_id=row.id,
-                    document_id=row.document_id,
-                    document_title=row.document_title,
-                    content=row.content,
-                    section_type=row.section_type,
-                    section_title=row.section_title,
-                    similarity_score=round(similarity, 4),
-                    chunk_index=row.chunk_index,
-                ))
+                scored_results.append(
+                    RetrievalResult(
+                        chunk_id=row.id,
+                        document_id=row.document_id,
+                        document_title=row.document_title,
+                        content=row.content,
+                        section_type=row.section_type,
+                        section_title=row.section_title,
+                        similarity_score=round(similarity, 4),
+                        chunk_index=row.chunk_index,
+                    )
+                )
 
         # Sort by similarity and limit
         scored_results.sort(key=lambda x: x.similarity_score, reverse=True)
@@ -323,16 +328,18 @@ class RetrievalService:
 
             similarity = self._cosine_similarity(source_embedding, chunk_embedding)
 
-            scored_results.append(RetrievalResult(
-                chunk_id=row.id,
-                document_id=row.document_id,
-                document_title=row.document_title,
-                content=row.content,
-                section_type=row.section_type,
-                section_title=row.section_title,
-                similarity_score=round(similarity, 4),
-                chunk_index=row.chunk_index,
-            ))
+            scored_results.append(
+                RetrievalResult(
+                    chunk_id=row.id,
+                    document_id=row.document_id,
+                    document_title=row.document_title,
+                    content=row.content,
+                    section_type=row.section_type,
+                    section_title=row.section_title,
+                    similarity_score=round(similarity, 4),
+                    chunk_index=row.chunk_index,
+                )
+            )
 
         # Sort and limit
         scored_results.sort(key=lambda x: x.similarity_score, reverse=True)
@@ -422,7 +429,9 @@ class RetrievalService:
             doc["avg_similarity"] = doc["total_similarity"] / doc["chunk_count"]
             doc["score"] = (doc["max_similarity"] + doc["avg_similarity"]) / 2
 
-        sorted_docs = sorted(doc_scores.values(), key=lambda x: x["score"], reverse=True)
+        sorted_docs = sorted(
+            doc_scores.values(), key=lambda x: x["score"], reverse=True
+        )
 
         return [
             {
@@ -457,7 +466,9 @@ class RetrievalService:
         result = await self.db.execute(base_query)
         row = result.fetchone()
 
-        doc_query = select(func.count(Document.id)).where(Document.status == DocumentStatus.READY)
+        doc_query = select(func.count(Document.id)).where(
+            Document.status == DocumentStatus.READY
+        )
         if project_id is not None:
             doc_query = doc_query.where(Document.project_id == project_id)
 
@@ -470,7 +481,8 @@ class RetrievalService:
             "ready_documents": doc_count,
             "coverage": (
                 round(row.embedded_chunks / row.total_chunks * 100, 1)
-                if row and row.total_chunks > 0 else 0
+                if row and row.total_chunks > 0
+                else 0
             ),
         }
 

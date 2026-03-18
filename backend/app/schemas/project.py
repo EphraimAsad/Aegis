@@ -20,21 +20,33 @@ class ProjectStatus(StrEnum):
 class ProjectScope(BaseModel):
     """Project scope definition."""
 
-    disciplines: list[str] = Field(default_factory=list, description="Academic disciplines")
+    disciplines: list[str] = Field(
+        default_factory=list, description="Academic disciplines"
+    )
     keywords: list[str] = Field(default_factory=list, description="Search keywords")
-    excluded_keywords: list[str] = Field(default_factory=list, description="Keywords to exclude")
+    excluded_keywords: list[str] = Field(
+        default_factory=list, description="Keywords to exclude"
+    )
     date_range_start: str | None = Field(None, description="Start date (YYYY-MM-DD)")
     date_range_end: str | None = Field(None, description="End date (YYYY-MM-DD)")
-    languages: list[str] = Field(default_factory=lambda: ["en"], description="Languages")
+    languages: list[str] = Field(
+        default_factory=lambda: ["en"], description="Languages"
+    )
     document_types: list[str] = Field(
         default_factory=lambda: ["journal-article", "conference-paper"],
         description="Document types",
     )
     min_citations: int = Field(0, ge=0, description="Minimum citation count")
     include_preprints: bool = Field(True, description="Include preprints")
-    geographic_focus: list[str] = Field(default_factory=list, description="Geographic regions")
-    specific_journals: list[str] = Field(default_factory=list, description="Specific journals")
-    specific_authors: list[str] = Field(default_factory=list, description="Specific authors")
+    geographic_focus: list[str] = Field(
+        default_factory=list, description="Geographic regions"
+    )
+    specific_journals: list[str] = Field(
+        default_factory=list, description="Specific journals"
+    )
+    specific_authors: list[str] = Field(
+        default_factory=list, description="Specific authors"
+    )
     custom_filters: dict = Field(default_factory=dict, description="Custom filters")
 
 
@@ -46,7 +58,9 @@ class ProjectCreateRequest(BaseModel):
 
     name: str = Field(..., min_length=1, max_length=255, description="Project name")
     description: str | None = Field(None, description="Project description")
-    research_objective: str = Field(..., min_length=10, description="Research objective/question")
+    research_objective: str = Field(
+        ..., min_length=10, description="Research objective/question"
+    )
     provider: str | None = Field(None, description="AI provider override")
     model: str | None = Field(None, description="Model override")
 

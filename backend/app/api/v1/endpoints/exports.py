@@ -123,12 +123,14 @@ async def list_export_formats() -> dict:
     """
     formats = []
     for fmt in ExportFormat:
-        formats.append({
-            "id": fmt.value,
-            "name": fmt.name.replace("_", " ").title(),
-            "content_type": EXPORT_CONTENT_TYPES[fmt],
-            "description": _get_format_description(fmt),
-        })
+        formats.append(
+            {
+                "id": fmt.value,
+                "name": fmt.name.replace("_", " ").title(),
+                "content_type": EXPORT_CONTENT_TYPES[fmt],
+                "description": _get_format_description(fmt),
+            }
+        )
 
     return {"formats": formats}
 

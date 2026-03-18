@@ -31,14 +31,24 @@ class DocumentService:
             project_id=request.project_id,
             title=request.title,
             abstract=request.abstract,
-            authors=[a.model_dump() for a in request.authors] if request.authors else [],
-            document_type=request.document_type.value if request.document_type else "journal-article",
+            authors=(
+                [a.model_dump() for a in request.authors] if request.authors else []
+            ),
+            document_type=(
+                request.document_type.value
+                if request.document_type
+                else "journal-article"
+            ),
             publication_date=request.publication_date,
             year=request.year,
             journal=request.journal.model_dump() if request.journal else None,
             language=request.language,
             doi=request.doi,
-            identifiers=[i.model_dump() for i in request.identifiers] if request.identifiers else [],
+            identifiers=(
+                [i.model_dump() for i in request.identifiers]
+                if request.identifiers
+                else []
+            ),
             url=request.url,
             pdf_url=request.pdf_url,
             open_access_url=request.open_access_url,
@@ -63,7 +73,9 @@ class DocumentService:
 
         return document
 
-    async def create_from_paper(self, project_id: int, paper: Paper, tags: list[str] | None = None) -> Document:
+    async def create_from_paper(
+        self, project_id: int, paper: Paper, tags: list[str] | None = None
+    ) -> Document:
         """
         Create a document from a Paper schema (from search results).
 
@@ -90,7 +102,9 @@ class DocumentService:
             abstract=paper.abstract,
             authors=[a.model_dump() for a in paper.authors],
             document_type=paper.document_type.value,
-            publication_date=paper.publication_date.isoformat() if paper.publication_date else None,
+            publication_date=(
+                paper.publication_date.isoformat() if paper.publication_date else None
+            ),
             year=paper.year,
             journal=paper.journal.model_dump() if paper.journal else None,
             language=paper.language,
@@ -98,7 +112,9 @@ class DocumentService:
             identifiers=[i.model_dump() for i in paper.identifiers],
             url=str(paper.url) if paper.url else None,
             pdf_url=str(paper.pdf_url) if paper.pdf_url else None,
-            open_access_url=str(paper.open_access_url) if paper.open_access_url else None,
+            open_access_url=(
+                str(paper.open_access_url) if paper.open_access_url else None
+            ),
             citation_count=paper.citation_count,
             reference_count=paper.reference_count,
             keywords=paper.keywords,
@@ -110,7 +126,11 @@ class DocumentService:
             is_retracted=paper.is_retracted,
             source_name=paper.primary_source,
             source_id=paper.sources[0].id if paper.sources else None,
-            source_url=str(paper.sources[0].url) if paper.sources and paper.sources[0].url else None,
+            source_url=(
+                str(paper.sources[0].url)
+                if paper.sources and paper.sources[0].url
+                else None
+            ),
             status=DocumentStatus.PENDING,
         )
 
@@ -148,7 +168,9 @@ class DocumentService:
 
         return document
 
-    async def get_by_doi(self, doi: str, project_id: int | None = None) -> Document | None:
+    async def get_by_doi(
+        self, doi: str, project_id: int | None = None
+    ) -> Document | None:
         """
         Get a document by DOI, optionally within a project.
 
@@ -197,7 +219,9 @@ class DocumentService:
             query = query.where(Document.tags.overlap(tags))
 
         # Count total
-        count_query = select(func.count(Document.id)).where(Document.project_id == project_id)
+        count_query = select(func.count(Document.id)).where(
+            Document.project_id == project_id
+        )
         if status:
             count_query = count_query.where(Document.status == status)
         if tags:
@@ -237,7 +261,9 @@ class DocumentService:
 
         return document
 
-    async def update_status(self, document_id: int, status: DocumentStatus, error_message: str | None = None) -> Document:
+    async def update_status(
+        self, document_id: int, status: DocumentStatus, error_message: str | None = None
+    ) -> Document:
         """
         Update document processing status.
 
@@ -314,13 +340,11 @@ class DocumentService:
         await self.db.refresh(chunk)
 
         # Update chunk count on document
-        await self.db.execute(
-            select(Document)
-            .where(Document.id == document_id)
-        )
+        await self.db.execute(select(Document).where(Document.id == document_id))
         result = await self.db.execute(
-            select(func.count(DocumentChunk.id))
-            .where(DocumentChunk.document_id == document_id)
+            select(func.count(DocumentChunk.id)).where(
+                DocumentChunk.document_id == document_id
+            )
         )
         count = result.scalar() or 0
 
@@ -405,7 +429,9 @@ class DocumentService:
 
         return document
 
-    async def set_evidence_claims(self, document_id: int, claims: list[dict]) -> Document:
+    async def set_evidence_claims(
+        self, document_id: int, claims: list[dict]
+    ) -> Document:
         """
         Set the evidence claims for a document.
 
@@ -424,7 +450,9 @@ class DocumentService:
 
         return document
 
-    async def set_key_findings(self, document_id: int, findings: list[dict]) -> Document:
+    async def set_key_findings(
+        self, document_id: int, findings: list[dict]
+    ) -> Document:
         """
         Set the key findings for a document.
 
@@ -443,7 +471,9 @@ class DocumentService:
 
         return document
 
-    async def set_full_text(self, document_id: int, full_text: str, source: str) -> Document:
+    async def set_full_text(
+        self, document_id: int, full_text: str, source: str
+    ) -> Document:
         """
         Set the full text for a document.
 

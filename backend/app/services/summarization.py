@@ -44,7 +44,6 @@ Abstract: {abstract}
 {full_text_section}
 
 Provide only the summary, no preamble.""",
-
     SummaryLevel.STANDARD: """Summarize the following academic paper in 3-5 sentences, covering the main objective, methods, and key findings:
 
 Title: {title}
@@ -54,7 +53,6 @@ Abstract: {abstract}
 {full_text_section}
 
 Provide only the summary, no preamble.""",
-
     SummaryLevel.DETAILED: """Provide a detailed summary of the following academic paper in one paragraph. Include:
 - The research problem being addressed
 - The methodology or approach used
@@ -367,7 +365,9 @@ class SummarizationService:
         # Build context from all documents
         doc_contexts = []
         for doc in documents[:10]:  # Limit to 10 documents
-            doc_contexts.append(f"Document: {doc.title}\nAbstract: {doc.abstract or 'N/A'}")
+            doc_contexts.append(
+                f"Document: {doc.title}\nAbstract: {doc.abstract or 'N/A'}"
+            )
 
         all_docs = "\n\n---\n\n".join(doc_contexts)
 

@@ -163,7 +163,9 @@ class ArxivAdapter(BaseSourceAdapter):
 
         # Get total results
         total_elem = root.find("opensearch:totalResults", namespaces)
-        total = int(total_elem.text) if total_elem is not None and total_elem.text else 0
+        total = (
+            int(total_elem.text) if total_elem is not None and total_elem.text else 0
+        )
 
         papers = []
         for entry in root.findall("atom:entry", namespaces):
@@ -184,10 +186,16 @@ class ArxivAdapter(BaseSourceAdapter):
         try:
             # Extract basic info
             title = entry.find("atom:title", ns)
-            title_text = title.text.strip().replace("\n", " ") if title is not None and title.text else "Untitled"
+            title_text = (
+                title.text.strip().replace("\n", " ")
+                if title is not None and title.text
+                else "Untitled"
+            )
 
             summary = entry.find("atom:summary", ns)
-            abstract = summary.text.strip() if summary is not None and summary.text else None
+            abstract = (
+                summary.text.strip() if summary is not None and summary.text else None
+            )
 
             # Extract arXiv ID from the id URL
             id_elem = entry.find("atom:id", ns)
@@ -203,10 +211,12 @@ class ArxivAdapter(BaseSourceAdapter):
                     for aff in author_elem.findall("arxiv:affiliation", ns):
                         if aff.text:
                             affiliations.append(aff.text)
-                    authors.append(Author(
-                        name=name_elem.text,
-                        affiliations=affiliations,
-                    ))
+                    authors.append(
+                        Author(
+                            name=name_elem.text,
+                            affiliations=affiliations,
+                        )
+                    )
 
             # Extract dates
             published = entry.find("atom:published", ns)
@@ -275,10 +285,12 @@ class ArxivAdapter(BaseSourceAdapter):
             )
 
             # Add source info
-            paper.add_source(self._create_source_info(
-                source_id=arxiv_id,
-                url=abs_url or arxiv_url,
-            ))
+            paper.add_source(
+                self._create_source_info(
+                    source_id=arxiv_id,
+                    url=abs_url or arxiv_url,
+                )
+            )
 
             paper.dedupe_key = paper.generate_dedupe_key()
             return paper

@@ -80,9 +80,7 @@ class AnalyticsService:
         # Compute embedding coverage
         ready_docs = [doc for doc in documents if doc.status == DocumentStatus.READY]
         docs_with_chunks = sum(1 for doc in ready_docs if doc.chunk_count > 0)
-        embedding_coverage = (
-            docs_with_chunks / len(ready_docs) if ready_docs else 0
-        )
+        embedding_coverage = docs_with_chunks / len(ready_docs) if ready_docs else 0
 
         return AnalyticsOverview(
             project_id=project_id,
@@ -131,11 +129,13 @@ class AnalyticsService:
         documents = list(result.scalars().all())
 
         # Group by year
-        year_data = defaultdict(lambda: {
-            "count": 0,
-            "citations": 0,
-            "open_access": 0,
-        })
+        year_data = defaultdict(
+            lambda: {
+                "count": 0,
+                "citations": 0,
+                "open_access": 0,
+            }
+        )
 
         for doc in documents:
             year = doc.year
@@ -148,13 +148,19 @@ class AnalyticsService:
         trends = []
         for year in sorted(year_data.keys()):
             data = year_data[year]
-            trends.append(PublicationTrend(
-                year=year,
-                count=data["count"],
-                citation_total=data["citations"],
-                citation_avg=round(data["citations"] / data["count"], 2) if data["count"] else 0,
-                open_access_count=data["open_access"],
-            ))
+            trends.append(
+                PublicationTrend(
+                    year=year,
+                    count=data["count"],
+                    citation_total=data["citations"],
+                    citation_avg=(
+                        round(data["citations"] / data["count"], 2)
+                        if data["count"]
+                        else 0
+                    ),
+                    open_access_count=data["open_access"],
+                )
+            )
 
         return trends
 
@@ -179,12 +185,14 @@ class AnalyticsService:
         documents = list(result.scalars().all())
 
         # Collect author data
-        author_data = defaultdict(lambda: {
-            "count": 0,
-            "citations": 0,
-            "years": [],
-            "affiliations": set(),
-        })
+        author_data = defaultdict(
+            lambda: {
+                "count": 0,
+                "citations": 0,
+                "years": [],
+                "affiliations": set(),
+            }
+        )
 
         for doc in documents:
             if not doc.authors:
@@ -211,14 +219,16 @@ class AnalyticsService:
         author_stats = []
         for name, data in author_data.items():
             years = data["years"]
-            author_stats.append(AuthorStats(
-                name=name,
-                document_count=data["count"],
-                total_citations=data["citations"],
-                first_year=min(years) if years else None,
-                last_year=max(years) if years else None,
-                affiliations=list(data["affiliations"])[:5],
-            ))
+            author_stats.append(
+                AuthorStats(
+                    name=name,
+                    document_count=data["count"],
+                    total_citations=data["citations"],
+                    first_year=min(years) if years else None,
+                    last_year=max(years) if years else None,
+                    affiliations=list(data["affiliations"])[:5],
+                )
+            )
 
         # Sort by document count
         author_stats.sort(key=lambda x: x.document_count, reverse=True)
@@ -299,11 +309,17 @@ class AnalyticsService:
         # Convert to stats
         stats = []
         for source, data in source_data.items():
-            stats.append(SourceStats(
-                source_name=source,
-                document_count=data["count"],
-                avg_citations=round(data["citations"] / data["count"], 2) if data["count"] else 0,
-            ))
+            stats.append(
+                SourceStats(
+                    source_name=source,
+                    document_count=data["count"],
+                    avg_citations=(
+                        round(data["citations"] / data["count"], 2)
+                        if data["count"]
+                        else 0
+                    ),
+                )
+            )
 
         # Sort by count
         stats.sort(key=lambda x: x.document_count, reverse=True)
@@ -335,11 +351,13 @@ class AnalyticsService:
         # Convert to stats
         stats = []
         for doc_type, count in type_counts.most_common():
-            stats.append(DocumentTypeStats(
-                document_type=doc_type,
-                count=count,
-                percentage=round(count / total * 100, 1) if total else 0,
-            ))
+            stats.append(
+                DocumentTypeStats(
+                    document_type=doc_type,
+                    count=count,
+                    percentage=round(count / total * 100, 1) if total else 0,
+                )
+            )
 
         return stats
 

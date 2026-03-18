@@ -134,7 +134,9 @@ class ProjectService:
 
         return project
 
-    async def update_scope(self, project_id: int, request: ProjectScopeUpdateRequest) -> Project:
+    async def update_scope(
+        self, project_id: int, request: ProjectScopeUpdateRequest
+    ) -> Project:
         """
         Update project scope.
 
@@ -172,9 +174,21 @@ class ProjectService:
         # Validate status transitions
         valid_transitions = {
             ProjectStatus.DRAFT: [ProjectStatus.CLARIFYING, ProjectStatus.ARCHIVED],
-            ProjectStatus.CLARIFYING: [ProjectStatus.READY, ProjectStatus.DRAFT, ProjectStatus.ARCHIVED],
-            ProjectStatus.READY: [ProjectStatus.ACTIVE, ProjectStatus.CLARIFYING, ProjectStatus.ARCHIVED],
-            ProjectStatus.ACTIVE: [ProjectStatus.COMPLETED, ProjectStatus.READY, ProjectStatus.ARCHIVED],
+            ProjectStatus.CLARIFYING: [
+                ProjectStatus.READY,
+                ProjectStatus.DRAFT,
+                ProjectStatus.ARCHIVED,
+            ],
+            ProjectStatus.READY: [
+                ProjectStatus.ACTIVE,
+                ProjectStatus.CLARIFYING,
+                ProjectStatus.ARCHIVED,
+            ],
+            ProjectStatus.ACTIVE: [
+                ProjectStatus.COMPLETED,
+                ProjectStatus.READY,
+                ProjectStatus.ARCHIVED,
+            ],
             ProjectStatus.COMPLETED: [ProjectStatus.ARCHIVED, ProjectStatus.ACTIVE],
             ProjectStatus.ARCHIVED: [ProjectStatus.DRAFT],
         }
@@ -194,7 +208,9 @@ class ProjectService:
             if project.unanswered_questions_count > 0:
                 raise ValidationError(
                     "Cannot mark project as ready while there are unanswered clarification questions",
-                    details={"unanswered_questions": project.unanswered_questions_count},
+                    details={
+                        "unanswered_questions": project.unanswered_questions_count
+                    },
                 )
 
         project.status = status

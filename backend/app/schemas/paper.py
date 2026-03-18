@@ -29,7 +29,9 @@ class Author(BaseModel):
     given_name: str | None = Field(None, description="First/given name")
     family_name: str | None = Field(None, description="Last/family name")
     orcid: str | None = Field(None, description="ORCID identifier")
-    affiliations: list[str] = Field(default_factory=list, description="Institutional affiliations")
+    affiliations: list[str] = Field(
+        default_factory=list, description="Institutional affiliations"
+    )
 
 
 class Identifier(BaseModel):
@@ -73,7 +75,9 @@ class Paper(BaseModel):
     authors: list[Author] = Field(default_factory=list, description="List of authors")
 
     # Publication info
-    document_type: DocumentType = Field(DocumentType.JOURNAL_ARTICLE, description="Type of document")
+    document_type: DocumentType = Field(
+        DocumentType.JOURNAL_ARTICLE, description="Type of document"
+    )
     publication_date: date | None = Field(None, description="Publication date")
     year: int | None = Field(None, description="Publication year")
     journal: Journal | None = Field(None, description="Journal/venue information")
@@ -81,7 +85,9 @@ class Paper(BaseModel):
 
     # Identifiers
     doi: str | None = Field(None, description="DOI")
-    identifiers: list[Identifier] = Field(default_factory=list, description="All identifiers")
+    identifiers: list[Identifier] = Field(
+        default_factory=list, description="All identifiers"
+    )
 
     # URLs
     url: HttpUrl | None = Field(None, description="Primary URL")
@@ -94,8 +100,12 @@ class Paper(BaseModel):
 
     # Classification
     keywords: list[str] = Field(default_factory=list, description="Keywords/tags")
-    subjects: list[str] = Field(default_factory=list, description="Subject areas/disciplines")
-    mesh_terms: list[str] = Field(default_factory=list, description="MeSH terms (for biomedical)")
+    subjects: list[str] = Field(
+        default_factory=list, description="Subject areas/disciplines"
+    )
+    mesh_terms: list[str] = Field(
+        default_factory=list, description="MeSH terms (for biomedical)"
+    )
 
     # Flags
     is_open_access: bool = Field(False, description="Whether open access")
@@ -103,7 +113,9 @@ class Paper(BaseModel):
     is_retracted: bool = Field(False, description="Whether retracted")
 
     # Source tracking
-    sources: list[SourceInfo] = Field(default_factory=list, description="Sources that provided this paper")
+    sources: list[SourceInfo] = Field(
+        default_factory=list, description="Sources that provided this paper"
+    )
     primary_source: str | None = Field(None, description="Primary source name")
 
     # Internal
@@ -121,9 +133,7 @@ class Paper(BaseModel):
             return f"doi:{self.doi.lower()}"
 
         # Normalize title for comparison
-        title_normalized = "".join(
-            c.lower() for c in self.title if c.isalnum()
-        )
+        title_normalized = "".join(c.lower() for c in self.title if c.isalnum())
         year_str = str(self.year) if self.year else "unknown"
         return f"title:{title_normalized[:100]}:{year_str}"
 
@@ -150,7 +160,9 @@ class SearchFilters(BaseModel):
     year_from: int | None = Field(None, ge=1900, le=2100, description="Start year")
     year_to: int | None = Field(None, ge=1900, le=2100, description="End year")
 
-    document_types: list[DocumentType] = Field(default_factory=list, description="Document type filter")
+    document_types: list[DocumentType] = Field(
+        default_factory=list, description="Document type filter"
+    )
     languages: list[str] = Field(default_factory=list, description="Language filter")
 
     open_access_only: bool = Field(False, description="Only open access papers")
@@ -159,7 +171,9 @@ class SearchFilters(BaseModel):
     journals: list[str] = Field(default_factory=list, description="Specific journals")
     subjects: list[str] = Field(default_factory=list, description="Subject areas")
 
-    exclude_keywords: list[str] = Field(default_factory=list, description="Keywords to exclude")
+    exclude_keywords: list[str] = Field(
+        default_factory=list, description="Keywords to exclude"
+    )
     exclude_preprints: bool = Field(False, description="Exclude preprints")
 
     def to_query_string(self) -> str:

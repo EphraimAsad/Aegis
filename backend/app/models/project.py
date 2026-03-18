@@ -119,10 +119,7 @@ class Project(Base):
     @property
     def unanswered_questions_count(self) -> int:
         """Count unanswered clarification questions."""
-        return sum(
-            1 for q in self.clarification_questions
-            if not q.is_answered
-        )
+        return sum(1 for q in self.clarification_questions if not q.is_answered)
 
     @property
     def is_ready_for_research(self) -> bool:

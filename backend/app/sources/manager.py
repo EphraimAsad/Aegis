@@ -123,9 +123,7 @@ class SourceManager:
         # Determine which sources to search
         source_names = sources or list(self._sources.keys())
         active_sources = [
-            self._sources[name]
-            for name in source_names
-            if name in self._sources
+            self._sources[name] for name in source_names if name in self._sources
         ]
 
         if not active_sources:
@@ -225,7 +223,8 @@ class SourceManager:
 
                 # Update citation count if higher
                 if paper.citation_count and (
-                    not existing.citation_count or paper.citation_count > existing.citation_count
+                    not existing.citation_count
+                    or paper.citation_count > existing.citation_count
                 ):
                     existing.citation_count = paper.citation_count
 
@@ -240,7 +239,9 @@ class SourceManager:
 
         return list(seen.values())
 
-    async def get_by_doi(self, doi: str, sources: list[str] | None = None) -> Paper | None:
+    async def get_by_doi(
+        self, doi: str, sources: list[str] | None = None
+    ) -> Paper | None:
         """
         Look up a paper by DOI across sources.
 
@@ -314,22 +315,27 @@ def _initialize_default_sources(manager: SourceManager) -> None:
     """
     # Register OpenAlex (no API key required)
     from app.sources.openalex import OpenAlexAdapter
+
     manager.register(OpenAlexAdapter())
 
     # Register Crossref (no API key required)
     from app.sources.crossref import CrossrefAdapter
+
     manager.register(CrossrefAdapter())
 
     # Register Semantic Scholar (API key optional)
     from app.sources.semantic_scholar import SemanticScholarAdapter
+
     manager.register(SemanticScholarAdapter())
 
     # Register arXiv (no API key required)
     from app.sources.arxiv import ArxivAdapter
+
     manager.register(ArxivAdapter())
 
     # Register PubMed (API key optional)
     from app.sources.pubmed import PubMedAdapter
+
     manager.register(PubMedAdapter())
 
 

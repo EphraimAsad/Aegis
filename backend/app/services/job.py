@@ -80,9 +80,7 @@ class JobService:
             NotFoundError: If job not found
         """
         result = await self.db.execute(
-            select(Job)
-            .options(selectinload(Job.child_jobs))
-            .where(Job.id == job_id)
+            select(Job).options(selectinload(Job.child_jobs)).where(Job.id == job_id)
         )
         job = result.scalar_one_or_none()
 
@@ -251,6 +249,7 @@ class JobService:
         # Cancel in Celery
         if job.celery_task_id:
             from app.worker.celery_app import celery_app
+
             celery_app.control.revoke(job.celery_task_id, terminate=True)
 
         job.mark_cancelled()
@@ -284,7 +283,10 @@ class JobService:
         if job.retry_count >= job.max_retries:
             raise ValidationError(
                 "Maximum retries exceeded",
-                details={"retry_count": job.retry_count, "max_retries": job.max_retries},
+                details={
+                    "retry_count": job.retry_count,
+                    "max_retries": job.max_retries,
+                },
             )
 
         # Create new job as retry
@@ -342,10 +344,12 @@ class JobService:
             type_counts[job_type.value] = result.scalar() or 0
 
         # Average duration
-        avg_query = select(func.avg(
-            func.extract("epoch", Job.completed_at) -
-            func.extract("epoch", Job.started_at)
-        )).where(
+        avg_query = select(
+            func.avg(
+                func.extract("epoch", Job.completed_at)
+                - func.extract("epoch", Job.started_at)
+            )
+        ).where(
             Job.status == JobStatus.COMPLETED,
             Job.started_at.isnot(None),
             Job.completed_at.isnot(None),
@@ -451,7 +455,11 @@ class JobService:
 
         result = await self.db.execute(
             select(Job)
-            .where(Job.status.in_([JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.CANCELLED]))
+            .where(
+                Job.status.in_(
+                    [JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.CANCELLED]
+                )
+            )
             .where(Job.completed_at < cutoff)
         )
         old_jobs = list(result.scalars().all())

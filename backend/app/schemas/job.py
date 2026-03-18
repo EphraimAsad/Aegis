@@ -149,6 +149,7 @@ class JobStatsResponse(BaseModel):
 
 # Research job specific schemas
 
+
 class ResearchJobConfig(BaseModel):
     """Configuration for a research job."""
 

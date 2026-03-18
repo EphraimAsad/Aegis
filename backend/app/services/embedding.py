@@ -116,7 +116,7 @@ class EmbeddingService:
 
         # Process in batches
         for i in range(0, len(texts), batch_size):
-            batch = texts[i:i + batch_size]
+            batch = texts[i : i + batch_size]
             response = await provider.embed(
                 texts=batch,
                 model=self._model_name,
@@ -151,7 +151,7 @@ class EmbeddingService:
 
         # Process in batches
         for i in range(0, len(chunks), batch_size):
-            batch = chunks[i:i + batch_size]
+            batch = chunks[i : i + batch_size]
             texts = [chunk.content for chunk in batch]
 
             try:
@@ -162,12 +162,14 @@ class EmbeddingService:
 
                 # Store results
                 for chunk, embedding in zip(batch, response.embeddings, strict=False):
-                    successful.append(EmbeddingResult(
-                        chunk_id=chunk.id,
-                        embedding=embedding,
-                        model=response.model,
-                        dimension=len(embedding),
-                    ))
+                    successful.append(
+                        EmbeddingResult(
+                            chunk_id=chunk.id,
+                            embedding=embedding,
+                            model=response.model,
+                            dimension=len(embedding),
+                        )
+                    )
 
                 total_tokens += response.total_tokens
 
@@ -264,11 +266,17 @@ class EmbeddingService:
                 )
 
             # Update document
-            document.embedding_model = embedding_result.successful[0].model if embedding_result.successful else None
+            document.embedding_model = (
+                embedding_result.successful[0].model
+                if embedding_result.successful
+                else None
+            )
 
             if embedding_result.failed:
                 document.status = DocumentStatus.ERROR
-                document.error_message = f"Failed to embed {len(embedding_result.failed)} chunks"
+                document.error_message = (
+                    f"Failed to embed {len(embedding_result.failed)} chunks"
+                )
             else:
                 document.status = DocumentStatus.READY
 

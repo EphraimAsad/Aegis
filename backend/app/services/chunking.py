@@ -109,14 +109,16 @@ class FixedSizeChunker(BaseChunker):
             chunk_text = text[start:end].strip()
 
             if chunk_text:
-                chunks.append(Chunk(
-                    content=chunk_text,
-                    index=index,
-                    start_char=start,
-                    end_char=end,
-                    section_type=section_type,
-                    token_count=self._estimate_tokens(chunk_text),
-                ))
+                chunks.append(
+                    Chunk(
+                        content=chunk_text,
+                        index=index,
+                        start_char=start,
+                        end_char=end,
+                        section_type=section_type,
+                        token_count=self._estimate_tokens(chunk_text),
+                    )
+                )
                 index += 1
 
             # Move start position, accounting for overlap
@@ -139,9 +141,9 @@ class SentenceChunker(BaseChunker):
     """
 
     # Sentence-ending patterns
-    SENTENCE_PATTERN = re.compile(r'(?<=[.!?])\s+(?=[A-Z])')
+    SENTENCE_PATTERN = re.compile(r"(?<=[.!?])\s+(?=[A-Z])")
     # More aggressive pattern including newlines
-    SENTENCE_PATTERN_RELAXED = re.compile(r'(?<=[.!?])\s+|\n\n+')
+    SENTENCE_PATTERN_RELAXED = re.compile(r"(?<=[.!?])\s+|\n\n+")
 
     def chunk(self, text: str, section_type: str | None = None) -> list[Chunk]:
         """Split text into sentence-based chunks."""
@@ -170,14 +172,16 @@ class SentenceChunker(BaseChunker):
             if current_length + sentence_len > self.chunk_size and current_sentences:
                 # Create chunk from current sentences
                 chunk_text = " ".join(current_sentences)
-                chunks.append(Chunk(
-                    content=chunk_text,
-                    index=index,
-                    start_char=current_start,
-                    end_char=current_start + len(chunk_text),
-                    section_type=section_type,
-                    token_count=self._estimate_tokens(chunk_text),
-                ))
+                chunks.append(
+                    Chunk(
+                        content=chunk_text,
+                        index=index,
+                        start_char=current_start,
+                        end_char=current_start + len(chunk_text),
+                        section_type=section_type,
+                        token_count=self._estimate_tokens(chunk_text),
+                    )
+                )
                 index += 1
 
                 # Handle overlap by keeping some sentences
@@ -191,7 +195,9 @@ class SentenceChunker(BaseChunker):
                         break
 
                 current_sentences = overlap_sentences
-                current_start = position - overlap_length if overlap_length else position
+                current_start = (
+                    position - overlap_length if overlap_length else position
+                )
                 current_length = overlap_length
 
             current_sentences.append(sentence)
@@ -201,14 +207,16 @@ class SentenceChunker(BaseChunker):
         # Handle remaining sentences
         if current_sentences:
             chunk_text = " ".join(current_sentences)
-            chunks.append(Chunk(
-                content=chunk_text,
-                index=index,
-                start_char=current_start,
-                end_char=current_start + len(chunk_text),
-                section_type=section_type,
-                token_count=self._estimate_tokens(chunk_text),
-            ))
+            chunks.append(
+                Chunk(
+                    content=chunk_text,
+                    index=index,
+                    start_char=current_start,
+                    end_char=current_start + len(chunk_text),
+                    section_type=section_type,
+                    token_count=self._estimate_tokens(chunk_text),
+                )
+            )
 
         return chunks
 
@@ -235,7 +243,7 @@ class ParagraphChunker(BaseChunker):
             return []
 
         # Split into paragraphs
-        paragraphs = re.split(r'\n\s*\n', text)
+        paragraphs = re.split(r"\n\s*\n", text)
         paragraphs = [p.strip() for p in paragraphs if p.strip()]
 
         chunks = []
@@ -252,14 +260,16 @@ class ParagraphChunker(BaseChunker):
             if current_length + para_len > self.chunk_size and current_paragraphs:
                 # Create chunk
                 chunk_text = "\n\n".join(current_paragraphs)
-                chunks.append(Chunk(
-                    content=chunk_text,
-                    index=index,
-                    start_char=current_start,
-                    end_char=current_start + len(chunk_text),
-                    section_type=section_type,
-                    token_count=self._estimate_tokens(chunk_text),
-                ))
+                chunks.append(
+                    Chunk(
+                        content=chunk_text,
+                        index=index,
+                        start_char=current_start,
+                        end_char=current_start + len(chunk_text),
+                        section_type=section_type,
+                        token_count=self._estimate_tokens(chunk_text),
+                    )
+                )
                 index += 1
 
                 # For paragraphs, we don't overlap - start fresh
@@ -274,14 +284,16 @@ class ParagraphChunker(BaseChunker):
         # Handle remaining paragraphs
         if current_paragraphs:
             chunk_text = "\n\n".join(current_paragraphs)
-            chunks.append(Chunk(
-                content=chunk_text,
-                index=index,
-                start_char=current_start,
-                end_char=current_start + len(chunk_text),
-                section_type=section_type,
-                token_count=self._estimate_tokens(chunk_text),
-            ))
+            chunks.append(
+                Chunk(
+                    content=chunk_text,
+                    index=index,
+                    start_char=current_start,
+                    end_char=current_start + len(chunk_text),
+                    section_type=section_type,
+                    token_count=self._estimate_tokens(chunk_text),
+                )
+            )
 
         return chunks
 
@@ -295,27 +307,27 @@ class SectionChunker(BaseChunker):
 
     # Common section headers
     SECTION_PATTERNS = [
-        (r'^abstract\s*[:.]?\s*', 'abstract'),
-        (r'^introduction\s*[:.]?\s*', 'introduction'),
-        (r'^background\s*[:.]?\s*', 'background'),
-        (r'^related\s+work\s*[:.]?\s*', 'related_work'),
-        (r'^literature\s+review\s*[:.]?\s*', 'literature_review'),
-        (r'^methods?\s*[:.]?\s*', 'methods'),
-        (r'^methodology\s*[:.]?\s*', 'methods'),
-        (r'^materials?\s+and\s+methods?\s*[:.]?\s*', 'methods'),
-        (r'^experimental\s*[:.]?\s*', 'methods'),
-        (r'^results?\s*[:.]?\s*', 'results'),
-        (r'^findings?\s*[:.]?\s*', 'results'),
-        (r'^discussion\s*[:.]?\s*', 'discussion'),
-        (r'^analysis\s*[:.]?\s*', 'discussion'),
-        (r'^conclusion\s*[:.]?\s*', 'conclusion'),
-        (r'^conclusions?\s*[:.]?\s*', 'conclusion'),
-        (r'^summary\s*[:.]?\s*', 'conclusion'),
-        (r'^references?\s*[:.]?\s*', 'references'),
-        (r'^bibliography\s*[:.]?\s*', 'references'),
-        (r'^acknowledgements?\s*[:.]?\s*', 'acknowledgements'),
-        (r'^appendix\s*[:.]?\s*', 'appendix'),
-        (r'^\d+\.?\s+', 'numbered_section'),
+        (r"^abstract\s*[:.]?\s*", "abstract"),
+        (r"^introduction\s*[:.]?\s*", "introduction"),
+        (r"^background\s*[:.]?\s*", "background"),
+        (r"^related\s+work\s*[:.]?\s*", "related_work"),
+        (r"^literature\s+review\s*[:.]?\s*", "literature_review"),
+        (r"^methods?\s*[:.]?\s*", "methods"),
+        (r"^methodology\s*[:.]?\s*", "methods"),
+        (r"^materials?\s+and\s+methods?\s*[:.]?\s*", "methods"),
+        (r"^experimental\s*[:.]?\s*", "methods"),
+        (r"^results?\s*[:.]?\s*", "results"),
+        (r"^findings?\s*[:.]?\s*", "results"),
+        (r"^discussion\s*[:.]?\s*", "discussion"),
+        (r"^analysis\s*[:.]?\s*", "discussion"),
+        (r"^conclusion\s*[:.]?\s*", "conclusion"),
+        (r"^conclusions?\s*[:.]?\s*", "conclusion"),
+        (r"^summary\s*[:.]?\s*", "conclusion"),
+        (r"^references?\s*[:.]?\s*", "references"),
+        (r"^bibliography\s*[:.]?\s*", "references"),
+        (r"^acknowledgements?\s*[:.]?\s*", "acknowledgements"),
+        (r"^appendix\s*[:.]?\s*", "appendix"),
+        (r"^\d+\.?\s+", "numbered_section"),
     ]
 
     def chunk(self, text: str, section_type: str | None = None) -> list[Chunk]:
@@ -336,19 +348,23 @@ class SectionChunker(BaseChunker):
         for section_title, section_text, section_type_detected, start_pos in sections:
             # If section is small enough, keep as single chunk
             if len(section_text) <= self.chunk_size:
-                chunks.append(Chunk(
-                    content=section_text,
-                    index=index,
-                    start_char=start_pos,
-                    end_char=start_pos + len(section_text),
-                    section_type=section_type_detected,
-                    section_title=section_title,
-                    token_count=self._estimate_tokens(section_text),
-                ))
+                chunks.append(
+                    Chunk(
+                        content=section_text,
+                        index=index,
+                        start_char=start_pos,
+                        end_char=start_pos + len(section_text),
+                        section_type=section_type_detected,
+                        section_title=section_title,
+                        token_count=self._estimate_tokens(section_text),
+                    )
+                )
                 index += 1
             else:
                 # Split large sections using sentence chunker
-                section_chunks = sentence_chunker.chunk(section_text, section_type_detected)
+                section_chunks = sentence_chunker.chunk(
+                    section_text, section_type_detected
+                )
                 for chunk in section_chunks:
                     chunk.index = index
                     chunk.start_char += start_pos
@@ -359,14 +375,16 @@ class SectionChunker(BaseChunker):
 
         return chunks
 
-    def _detect_sections(self, text: str) -> list[tuple[str | None, str, str | None, int]]:
+    def _detect_sections(
+        self, text: str
+    ) -> list[tuple[str | None, str, str | None, int]]:
         """
         Detect sections in text.
 
         Returns:
             List of (section_title, section_text, section_type, start_position)
         """
-        lines = text.split('\n')
+        lines = text.split("\n")
         sections = []
         current_title = None
         current_type = None
@@ -387,9 +405,11 @@ class SectionChunker(BaseChunker):
             if detected_type and len(stripped) < 100:  # Headers are usually short
                 # Save current section
                 if current_lines:
-                    section_text = '\n'.join(current_lines).strip()
+                    section_text = "\n".join(current_lines).strip()
                     if section_text:
-                        sections.append((current_title, section_text, current_type, current_start))
+                        sections.append(
+                            (current_title, section_text, current_type, current_start)
+                        )
 
                 # Start new section
                 current_title = stripped
@@ -403,9 +423,11 @@ class SectionChunker(BaseChunker):
 
         # Save final section
         if current_lines:
-            section_text = '\n'.join(current_lines).strip()
+            section_text = "\n".join(current_lines).strip()
             if section_text:
-                sections.append((current_title, section_text, current_type, current_start))
+                sections.append(
+                    (current_title, section_text, current_type, current_start)
+                )
 
         # If no sections detected, return entire text as single section
         if not sections:
@@ -461,7 +483,9 @@ class ChunkingService:
         """
         return self.chunker.chunk(text, section_type)
 
-    def chunk_document(self, abstract: str | None, full_text: str | None) -> list[Chunk]:
+    def chunk_document(
+        self, abstract: str | None, full_text: str | None
+    ) -> list[Chunk]:
         """
         Chunk a document's content intelligently.
 
@@ -479,7 +503,9 @@ class ChunkingService:
 
         # Chunk abstract first if available
         if abstract and abstract.strip():
-            abstract_chunks = self.chunker.chunk(abstract.strip(), section_type="abstract")
+            abstract_chunks = self.chunker.chunk(
+                abstract.strip(), section_type="abstract"
+            )
             for chunk in abstract_chunks:
                 chunk.index = index
                 chunks.append(chunk)

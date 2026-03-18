@@ -48,7 +48,9 @@ class AnswerQuestionRequest(BaseModel):
 class GenerateQuestionsRequest(BaseModel):
     """Request to generate clarification questions."""
 
-    force_regenerate: bool = Field(False, description="Regenerate even if questions exist")
+    force_regenerate: bool = Field(
+        False, description="Regenerate even if questions exist"
+    )
 
 
 # Response schemas

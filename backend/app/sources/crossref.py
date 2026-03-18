@@ -113,7 +113,9 @@ class CrossrefAdapter(BaseSourceAdapter):
             params["mailto"] = self._email
 
         try:
-            data = await self._make_request("GET", f"{self.base_url}/works", params=params)
+            data = await self._make_request(
+                "GET", f"{self.base_url}/works", params=params
+            )
             message = data.get("message", {})
 
             papers = [self._normalize_paper(item) for item in message.get("items", [])]
@@ -176,18 +178,22 @@ class CrossrefAdapter(BaseSourceAdapter):
                 if aff.get("name")
             ]
 
-            authors.append(Author(
-                name=" ".join(name_parts) if name_parts else "Unknown",
-                given_name=author_data.get("given"),
-                family_name=author_data.get("family"),
-                orcid=author_data.get("ORCID"),
-                affiliations=affiliations,
-            ))
+            authors.append(
+                Author(
+                    name=" ".join(name_parts) if name_parts else "Unknown",
+                    given_name=author_data.get("given"),
+                    family_name=author_data.get("family"),
+                    orcid=author_data.get("ORCID"),
+                    affiliations=affiliations,
+                )
+            )
 
         # Extract publication date
         pub_date = None
         year = None
-        date_parts = raw.get("published-print", raw.get("published-online", {})).get("date-parts", [[]])
+        date_parts = raw.get("published-print", raw.get("published-online", {})).get(
+            "date-parts", [[]]
+        )
         if date_parts and date_parts[0]:
             parts = date_parts[0]
             year = parts[0] if len(parts) > 0 else None
@@ -226,7 +232,11 @@ class CrossrefAdapter(BaseSourceAdapter):
         # Build paper
         paper = Paper(
             title=raw.get("title", ["Untitled"])[0] if raw.get("title") else "Untitled",
-            abstract=raw.get("abstract", "").replace("<jats:p>", "").replace("</jats:p>", "") if raw.get("abstract") else None,
+            abstract=(
+                raw.get("abstract", "").replace("<jats:p>", "").replace("</jats:p>", "")
+                if raw.get("abstract")
+                else None
+            ),
             authors=authors,
             document_type=doc_type,
             publication_date=pub_date,
@@ -244,10 +254,12 @@ class CrossrefAdapter(BaseSourceAdapter):
         )
 
         # Add source info
-        paper.add_source(self._create_source_info(
-            source_id=raw.get("DOI", ""),
-            url=raw.get("URL"),
-        ))
+        paper.add_source(
+            self._create_source_info(
+                source_id=raw.get("DOI", ""),
+                url=raw.get("URL"),
+            )
+        )
 
         paper.dedupe_key = paper.generate_dedupe_key()
         return paper

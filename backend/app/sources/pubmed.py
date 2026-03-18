@@ -88,7 +88,9 @@ class PubMedAdapter(BaseSourceAdapter):
 
         if filters:
             if filters.year_from:
-                search_terms.append(f"{filters.year_from}[PDAT]:{filters.year_to or 3000}[PDAT]")
+                search_terms.append(
+                    f"{filters.year_from}[PDAT]:{filters.year_to or 3000}[PDAT]"
+                )
             if filters.author:
                 search_terms.append(f"{filters.author}[Author]")
             if filters.title_contains:
@@ -248,7 +250,11 @@ class PubMedAdapter(BaseSourceAdapter):
 
             # Extract title
             title_elem = article_data.find("ArticleTitle")
-            title = title_elem.text if title_elem is not None and title_elem.text else "Untitled"
+            title = (
+                title_elem.text
+                if title_elem is not None and title_elem.text
+                else "Untitled"
+            )
 
             # Extract abstract
             abstract = None
@@ -284,12 +290,14 @@ class PubMedAdapter(BaseSourceAdapter):
                             if aff.text:
                                 affiliations.append(aff.text)
 
-                        authors.append(Author(
-                            name=" ".join(name_parts),
-                            given_name=given.text if given is not None else None,
-                            family_name=family.text if family is not None else None,
-                            affiliations=affiliations,
-                        ))
+                        authors.append(
+                            Author(
+                                name=" ".join(name_parts),
+                                given_name=given.text if given is not None else None,
+                                family_name=family.text if family is not None else None,
+                                affiliations=affiliations,
+                            )
+                        )
 
             # Extract publication date
             pub_date = None
@@ -311,9 +319,18 @@ class PubMedAdapter(BaseSourceAdapter):
                         except ValueError:
                             # Handle month names
                             month_map = {
-                                "jan": 1, "feb": 2, "mar": 3, "apr": 4,
-                                "may": 5, "jun": 6, "jul": 7, "aug": 8,
-                                "sep": 9, "oct": 10, "nov": 11, "dec": 12,
+                                "jan": 1,
+                                "feb": 2,
+                                "mar": 3,
+                                "apr": 4,
+                                "may": 5,
+                                "jun": 6,
+                                "jul": 7,
+                                "aug": 8,
+                                "sep": 9,
+                                "oct": 10,
+                                "nov": 11,
+                                "dec": 12,
                             }
                             month = month_map.get(month_elem.text.lower()[:3], 1)
 
@@ -393,10 +410,12 @@ class PubMedAdapter(BaseSourceAdapter):
             )
 
             # Add source info
-            paper.add_source(self._create_source_info(
-                source_id=pmid,
-                url=f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/",
-            ))
+            paper.add_source(
+                self._create_source_info(
+                    source_id=pmid,
+                    url=f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/",
+                )
+            )
 
             paper.dedupe_key = paper.generate_dedupe_key()
             return paper

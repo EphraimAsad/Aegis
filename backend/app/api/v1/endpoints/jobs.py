@@ -205,6 +205,7 @@ async def retry_job(
         # Re-submit to Celery based on job type
         if job.job_type == JobType.RESEARCH_FULL:
             from app.worker.tasks.research import run_research_job
+
             task = run_research_job.delay(
                 job_id=job.id,
                 project_id=job.project_id,
@@ -441,7 +442,7 @@ async def resume_job(
             raise HTTPException(
                 status_code=400,
                 detail=f"Cannot resume job with status '{job.status}'. "
-                       f"Job must be failed, cancelled, or paused.",
+                f"Job must be failed, cancelled, or paused.",
             )
 
         # Check for checkpoint if resuming from checkpoint
@@ -451,7 +452,7 @@ async def resume_job(
                 raise HTTPException(
                     status_code=400,
                     detail="No checkpoint found for this job. "
-                           "Set from_checkpoint=false to restart from beginning.",
+                    "Set from_checkpoint=false to restart from beginning.",
                 )
 
         # Reset job status

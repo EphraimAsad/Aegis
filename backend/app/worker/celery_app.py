@@ -25,30 +25,24 @@ celery_app.conf.update(
     result_serializer="json",
     timezone="UTC",
     enable_utc=True,
-
     # Task execution settings
     task_acks_late=True,
     task_reject_on_worker_lost=True,
     task_time_limit=3600,  # 1 hour hard limit
     task_soft_time_limit=3300,  # 55 min soft limit
-
     # Worker settings
     worker_prefetch_multiplier=1,
     worker_concurrency=4,
-
     # Result backend settings
     result_expires=86400,  # 24 hours
     result_extended=True,
-
     # Task routing
     task_routes={
         "app.worker.tasks.documents.*": {"queue": "documents"},
         "app.worker.tasks.research.*": {"queue": "research"},
     },
-
     # Default queue
     task_default_queue="default",
-
     # Beat schedule for periodic tasks
     beat_schedule={
         "cleanup-old-jobs": {

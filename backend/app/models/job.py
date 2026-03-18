@@ -171,7 +171,11 @@ class Job(Base):
     @property
     def is_finished(self) -> bool:
         """Check if job has finished (success or failure)."""
-        return self.status in [JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.CANCELLED]
+        return self.status in [
+            JobStatus.COMPLETED,
+            JobStatus.FAILED,
+            JobStatus.CANCELLED,
+        ]
 
     @property
     def duration_seconds(self) -> float | None:
@@ -237,7 +241,8 @@ class Job(Base):
         from app.models.job_progress_log import LogEntryType
 
         checkpoints = [
-            log for log in self.progress_logs
+            log
+            for log in self.progress_logs
             if log.is_checkpoint and log.entry_type == LogEntryType.CHECKPOINT
         ]
         return checkpoints[-1] if checkpoints else None

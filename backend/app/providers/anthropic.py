@@ -133,10 +133,12 @@ class AnthropicProvider(BaseProvider):
             if msg.role == MessageRole.SYSTEM:
                 system_message = msg.content
             else:
-                anthropic_messages.append({
-                    "role": msg.role.value,
-                    "content": msg.content,
-                })
+                anthropic_messages.append(
+                    {
+                        "role": msg.role.value,
+                        "content": msg.content,
+                    }
+                )
 
         # Build request payload
         payload: dict[str, Any] = {
@@ -292,10 +294,12 @@ class AnthropicProvider(BaseProvider):
             if msg.role == MessageRole.SYSTEM:
                 system_message = msg.content
             else:
-                anthropic_messages.append({
-                    "role": msg.role.value,
-                    "content": msg.content,
-                })
+                anthropic_messages.append(
+                    {
+                        "role": msg.role.value,
+                        "content": msg.content,
+                    }
+                )
 
         payload: dict[str, Any] = {
             "model": model,
@@ -315,6 +319,7 @@ class AnthropicProvider(BaseProvider):
                 async for line in response.aiter_lines():
                     if line.startswith("data: "):
                         import json
+
                         data_str = line[6:]
                         try:
                             data = json.loads(data_str)

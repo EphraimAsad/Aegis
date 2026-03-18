@@ -24,7 +24,9 @@ async def health_check(settings: SettingsDep) -> HealthResponse:
     redis_status = await check_redis_health()
 
     # Determine overall status
-    all_healthy = db_status == HealthStatus.HEALTHY and redis_status == HealthStatus.HEALTHY
+    all_healthy = (
+        db_status == HealthStatus.HEALTHY and redis_status == HealthStatus.HEALTHY
+    )
     overall_status = HealthStatus.HEALTHY if all_healthy else HealthStatus.DEGRADED
 
     return HealthResponse(

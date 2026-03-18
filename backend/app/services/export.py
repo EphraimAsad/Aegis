@@ -167,12 +167,14 @@ class ExportService:
                 findings = doc.key_findings or []
                 row.append("; ".join(findings) if findings else "")
             if options.include_metadata:
-                row.extend([
-                    doc.citation_count or 0,
-                    "Yes" if doc.is_open_access else "No",
-                    ", ".join(doc.tags or []),
-                    ", ".join(doc.keywords or []),
-                ])
+                row.extend(
+                    [
+                        doc.citation_count or 0,
+                        "Yes" if doc.is_open_access else "No",
+                        ", ".join(doc.tags or []),
+                        ", ".join(doc.keywords or []),
+                    ]
+                )
 
             writer.writerow(row)
 
@@ -203,17 +205,21 @@ class ExportService:
             if options.include_evidence:
                 item["evidence_claims"] = doc.evidence_claims
             if options.include_metadata:
-                item.update({
-                    "citation_count": doc.citation_count,
-                    "reference_count": doc.reference_count,
-                    "is_open_access": doc.is_open_access,
-                    "is_preprint": doc.is_preprint,
-                    "tags": doc.tags,
-                    "keywords": doc.keywords,
-                    "subjects": doc.subjects,
-                    "source_name": doc.source_name,
-                    "created_at": doc.created_at.isoformat() if doc.created_at else None,
-                })
+                item.update(
+                    {
+                        "citation_count": doc.citation_count,
+                        "reference_count": doc.reference_count,
+                        "is_open_access": doc.is_open_access,
+                        "is_preprint": doc.is_preprint,
+                        "tags": doc.tags,
+                        "keywords": doc.keywords,
+                        "subjects": doc.subjects,
+                        "source_name": doc.source_name,
+                        "created_at": (
+                            doc.created_at.isoformat() if doc.created_at else None
+                        ),
+                    }
+                )
             if options.include_full_text:
                 item["full_text"] = doc.full_text
 
@@ -482,7 +488,9 @@ class ExportService:
                 if len(author_names) == 2:
                     author_str = " & ".join(author_names)
                 elif len(author_names) > 2:
-                    author_str = ", ".join(author_names[:-1]) + ", & " + author_names[-1]
+                    author_str = (
+                        ", ".join(author_names[:-1]) + ", & " + author_names[-1]
+                    )
                 else:
                     author_str = author_names[0] if author_names else "Unknown"
             parts.append(author_str)

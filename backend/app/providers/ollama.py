@@ -106,8 +106,7 @@ class OllamaProvider(BaseProvider):
 
         # Convert messages to Ollama format
         ollama_messages = [
-            {"role": msg.role.value, "content": msg.content}
-            for msg in messages
+            {"role": msg.role.value, "content": msg.content} for msg in messages
         ]
 
         # Build request payload
@@ -339,8 +338,7 @@ class OllamaProvider(BaseProvider):
         settings = settings or ChatSettings()
 
         ollama_messages = [
-            {"role": msg.role.value, "content": msg.content}
-            for msg in messages
+            {"role": msg.role.value, "content": msg.content} for msg in messages
         ]
 
         payload: dict[str, Any] = {
@@ -362,6 +360,7 @@ class OllamaProvider(BaseProvider):
                 async for line in response.aiter_lines():
                     if line:
                         import json
+
                         data = json.loads(line)
                         if "message" in data and "content" in data["message"]:
                             yield data["message"]["content"]

@@ -46,7 +46,9 @@ async def search_papers(
     year_to: int | None = Query(None, ge=1900, le=2100, description="End year"),
     open_access: bool = Query(False, description="Only open access papers"),
     min_citations: int = Query(0, ge=0, description="Minimum citation count"),
-    document_types: str | None = Query(None, description="Comma-separated document types"),
+    document_types: str | None = Query(
+        None, description="Comma-separated document types"
+    ),
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Results per page per source"),
     deduplicate: bool = Query(True, description="Deduplicate results across sources"),
@@ -112,7 +114,9 @@ async def search_papers(
 @router.get("/doi/{doi:path}", response_model=Paper)
 async def get_paper_by_doi(
     doi: str,
-    sources: str | None = Query(None, description="Comma-separated source names to search"),
+    sources: str | None = Query(
+        None, description="Comma-separated source names to search"
+    ),
 ) -> Paper:
     """
     Look up a paper by its DOI.

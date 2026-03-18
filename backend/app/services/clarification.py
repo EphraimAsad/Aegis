@@ -17,7 +17,7 @@ from app.providers import ChatSettings, Message, MessageRole, get_provider_manag
 from app.schemas.clarification import AnswerQuestionRequest
 
 # Prompt template for generating clarification questions
-CLARIFICATION_PROMPT = '''You are an expert research assistant helping to clarify a research project's scope.
+CLARIFICATION_PROMPT = """You are an expert research assistant helping to clarify a research project's scope.
 
 The user has provided the following research objective:
 "{research_objective}"
@@ -59,7 +59,7 @@ Respond in JSON format:
       "is_required": true
     }}
   ]
-}}'''
+}}"""
 
 
 class ClarificationService:
@@ -155,11 +155,16 @@ class ClarificationService:
 
         try:
             messages = [
-                Message(role=MessageRole.SYSTEM, content="You are a helpful research assistant. Always respond with valid JSON."),
+                Message(
+                    role=MessageRole.SYSTEM,
+                    content="You are a helpful research assistant. Always respond with valid JSON.",
+                ),
                 Message(role=MessageRole.USER, content=prompt),
             ]
 
-            settings = ChatSettings(temperature=0.7, json_mode=provider.supports_json_mode())
+            settings = ChatSettings(
+                temperature=0.7, json_mode=provider.supports_json_mode()
+            )
             response = await provider.chat(messages, project.model, settings)
 
             # Parse the response
@@ -248,7 +253,9 @@ class ClarificationService:
         # Update the appropriate scope field
         if question.answer_data:
             # Use structured answer data
-            scope[question.scope_field] = question.answer_data.get("value", question.answer_data)
+            scope[question.scope_field] = question.answer_data.get(
+                "value", question.answer_data
+            )
         elif question.answer:
             # Use text answer - try to parse as list if applicable
             if question.question_type in [QuestionType.MULTI_SELECT]:
@@ -257,7 +264,11 @@ class ClarificationService:
                 except json.JSONDecodeError:
                     scope[question.scope_field] = [question.answer]
             elif question.question_type == QuestionType.BOOLEAN:
-                scope[question.scope_field] = question.answer.lower() in ["yes", "true", "1"]
+                scope[question.scope_field] = question.answer.lower() in [
+                    "yes",
+                    "true",
+                    "1",
+                ]
             elif question.question_type == QuestionType.NUMBER:
                 try:
                     scope[question.scope_field] = int(question.answer)
