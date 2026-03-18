@@ -1,6 +1,6 @@
 """Job progress log model for agent memory and checkpointing."""
 
-from enum import Enum
+from enum import StrEnum
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, ForeignKey, Integer, String, Text
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from app.models.job import Job
 
 
-class LogEntryType(str, Enum):
+class LogEntryType(StrEnum):
     """Types of progress log entries."""
 
     # Workflow phases

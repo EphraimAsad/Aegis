@@ -1,12 +1,12 @@
 """Clarification question schemas."""
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 
-class QuestionType(str, Enum):
+class QuestionType(StrEnum):
     """Types of clarification questions."""
 
     TEXT = "text"
@@ -17,7 +17,7 @@ class QuestionType(str, Enum):
     BOOLEAN = "boolean"
 
 
-class QuestionCategory(str, Enum):
+class QuestionCategory(StrEnum):
     """Categories of clarification questions."""
 
     SCOPE = "scope"

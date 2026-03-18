@@ -1,12 +1,12 @@
 """Schemas for job progress log API."""
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 
-class LogEntryType(str, Enum):
+class LogEntryType(StrEnum):
     """Types of progress log entries."""
 
     PHASE_START = "phase_start"

@@ -1,7 +1,7 @@
 """Job model for tracking background tasks."""
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from app.models.project import Project
 
 
-class JobType(str, Enum):
+class JobType(StrEnum):
     """Types of background jobs."""
 
     # Document processing
@@ -34,7 +34,7 @@ class JobType(str, Enum):
     REINDEX = "reindex"
 
 
-class JobStatus(str, Enum):
+class JobStatus(StrEnum):
     """Job execution status."""
 
     PENDING = "pending"  # Queued, not started
@@ -45,7 +45,7 @@ class JobStatus(str, Enum):
     PAUSED = "paused"  # Temporarily paused
 
 
-class JobPriority(str, Enum):
+class JobPriority(StrEnum):
     """Job priority levels."""
 
     LOW = "low"

@@ -1,6 +1,6 @@
 """Document model for storing processed papers."""
 
-from enum import Enum
+from enum import StrEnum
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, Float, ForeignKey, Integer, String, Text
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from app.models.project import Project
 
 
-class DocumentStatus(str, Enum):
+class DocumentStatus(StrEnum):
     """Document processing status."""
 
     PENDING = "pending"  # Just added, not processed

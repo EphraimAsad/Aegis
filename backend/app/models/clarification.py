@@ -1,7 +1,7 @@
 """Clarification question model for project intake."""
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB
@@ -10,7 +10,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
 
-class QuestionType(str, Enum):
+class QuestionType(StrEnum):
     """Types of clarification questions."""
 
     TEXT = "text"  # Free-form text response
@@ -21,7 +21,7 @@ class QuestionType(str, Enum):
     BOOLEAN = "boolean"  # Yes/No
 
 
-class QuestionCategory(str, Enum):
+class QuestionCategory(StrEnum):
     """Categories of clarification questions."""
 
     SCOPE = "scope"  # About research scope

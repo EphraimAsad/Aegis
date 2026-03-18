@@ -7,10 +7,10 @@ smaller pieces for embedding and retrieval.
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 
-class ChunkingStrategy(str, Enum):
+class ChunkingStrategy(StrEnum):
     """Available chunking strategies."""
 
     FIXED_SIZE = "fixed_size"

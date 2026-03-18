@@ -1,12 +1,12 @@
 """Job schemas for API requests/responses."""
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 
-class JobType(str, Enum):
+class JobType(StrEnum):
     """Types of background jobs."""
 
     PROCESS_DOCUMENT = "process_document"
@@ -20,7 +20,7 @@ class JobType(str, Enum):
     REINDEX = "reindex"
 
 
-class JobStatus(str, Enum):
+class JobStatus(StrEnum):
     """Job execution status."""
 
     PENDING = "pending"
@@ -31,7 +31,7 @@ class JobStatus(str, Enum):
     PAUSED = "paused"
 
 
-class JobPriority(str, Enum):
+class JobPriority(StrEnum):
     """Job priority levels."""
 
     LOW = "low"

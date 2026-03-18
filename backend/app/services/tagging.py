@@ -6,7 +6,7 @@ and predefined taxonomies.
 
 import json
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,7 +15,7 @@ from app.providers import get_provider_manager
 from app.providers.base import BaseProvider
 
 
-class TagSource(str, Enum):
+class TagSource(StrEnum):
     """Source of tags."""
 
     MANUAL = "manual"

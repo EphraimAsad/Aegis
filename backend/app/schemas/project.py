@@ -1,12 +1,12 @@
 """Project-related schemas."""
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 
-class ProjectStatus(str, Enum):
+class ProjectStatus(StrEnum):
     """Project lifecycle status."""
 
     DRAFT = "draft"

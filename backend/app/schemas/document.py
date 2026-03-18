@@ -1,14 +1,14 @@
 """Document schemas for API requests/responses."""
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 from app.schemas.paper import Author, DocumentType, Identifier, Journal
 
 
-class DocumentStatus(str, Enum):
+class DocumentStatus(StrEnum):
     """Document processing status."""
 
     PENDING = "pending"

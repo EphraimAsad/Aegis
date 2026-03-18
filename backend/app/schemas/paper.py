@@ -1,12 +1,12 @@
 """Normalized paper/document schemas for academic sources."""
 
 from datetime import date, datetime
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field, HttpUrl
 
 
-class DocumentType(str, Enum):
+class DocumentType(StrEnum):
     """Types of academic documents."""
 
     JOURNAL_ARTICLE = "journal-article"

@@ -6,13 +6,13 @@ The abstraction allows the application to work with any provider transparently.
 
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
 
 
-class MessageRole(str, Enum):
+class MessageRole(StrEnum):
     """Message role enumeration."""
 
     SYSTEM = "system"

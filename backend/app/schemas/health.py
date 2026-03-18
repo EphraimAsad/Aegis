@@ -1,11 +1,11 @@
 """Health check schemas."""
 
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel
 
 
-class HealthStatus(str, Enum):
+class HealthStatus(StrEnum):
     """Health status enumeration."""
 
     HEALTHY = "healthy"

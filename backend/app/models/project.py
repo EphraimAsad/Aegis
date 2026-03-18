@@ -1,6 +1,6 @@
 """Project model for research projects."""
 
-from enum import Enum
+from enum import StrEnum
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Integer, String, Text
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from app.models.job import Job
 
 
-class ProjectStatus(str, Enum):
+class ProjectStatus(StrEnum):
     """Project lifecycle status."""
 
     DRAFT = "draft"  # Initial creation, objective entered
