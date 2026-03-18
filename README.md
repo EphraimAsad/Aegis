@@ -6,7 +6,7 @@ Aegis is a model-agnostic orchestration system that helps researchers conduct co
 
 ## Current Status
 
-**Phase**: 6 - Long-running Jobs (Next)
+**Phase**: 7 - Retrieval & Exports (Next)
 
 | Phase | Status |
 |-------|--------|
@@ -16,8 +16,8 @@ Aegis is a model-agnostic orchestration system that helps researchers conduct co
 | Phase 3: Project Intake | Complete |
 | Phase 4: Source Adapters | Complete |
 | Phase 5: Document Processing | Complete |
-| Phase 6: Long-running Jobs | Next |
-| Phase 7: Retrieval & Exports | Pending |
+| Phase 6: Long-running Jobs | Complete |
+| Phase 7: Retrieval & Exports | Next |
 | Phase 8: Polish & Testing | Pending |
 
 ## Features
@@ -39,11 +39,16 @@ Aegis is a model-agnostic orchestration system that helps researchers conduct co
 - **Evidence extraction**: Claim identification with confidence scoring
 - **Auto-tagging**: AI-powered and keyword-based document tagging
 - **Semantic search**: Vector similarity search across document chunks
+- **Background jobs**: Celery-based task queue with Redis
+- **Research workflow**: Automated search, collection, and processing
+- **Job tracking**: Real-time progress, statistics, and history
+- **Batch processing**: Process multiple documents concurrently
 
 ### Planned
 - **Additional providers**: Gemini support
-- **Long-running jobs**: Background research tasks with progress tracking
-- **Export options**: CSV, JSON, Markdown, annotated bibliography
+- **Export options**: CSV, JSON, Markdown, BibTeX, annotated bibliography
+- **Library organization**: Collections and folders
+- **Analytics dashboard**: Research insights and trends
 
 ## Architecture
 
@@ -206,6 +211,17 @@ Set the `DEFAULT_PROVIDER` to choose which provider to use by default. Providers
 - `POST /api/v1/documents/search/semantic` - Semantic search
 - `GET /api/v1/documents/stats/{project_id}` - Document statistics
 
+### Jobs
+- `GET /api/v1/jobs` - List jobs (with filters)
+- `GET /api/v1/jobs/stats` - Job statistics
+- `GET /api/v1/jobs/{id}` - Get job details
+- `POST /api/v1/jobs/{id}/cancel` - Cancel a job
+- `POST /api/v1/jobs/{id}/retry` - Retry a failed job
+- `POST /api/v1/jobs/research` - Start research job
+- `POST /api/v1/jobs/batch-process` - Start batch processing
+- `GET /api/v1/jobs/project/{id}/active` - Get active jobs
+- `GET /api/v1/jobs/project/{id}/history` - Get job history
+
 ### Academic Sources
 
 | Source | Features |
@@ -229,7 +245,8 @@ Aegis/
 │   │   ├── schemas/   # Pydantic schemas
 │   │   ├── services/  # Business logic
 │   │   ├── providers/ # LLM provider abstraction
-│   │   └── sources/   # Academic source adapters
+│   │   ├── sources/   # Academic source adapters
+│   │   └── worker/    # Celery tasks and jobs
 │   ├── alembic/       # Database migrations
 │   └── tests/         # Backend tests
 ├── frontend/          # Next.js frontend

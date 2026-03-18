@@ -51,6 +51,22 @@ from app.schemas.document import (
     SemanticSearchResponse,
     SimilarChunkResult,
 )
+from app.schemas.job import (
+    BatchProcessRequest,
+    BatchProcessResponse,
+    JobCreate,
+    JobDetail,
+    JobListResponse,
+    JobPriority,
+    JobProgress,
+    JobStatsResponse,
+    JobStatus,
+    JobSummary,
+    JobType,
+    ResearchJobConfig,
+    StartResearchJobRequest,
+    StartResearchJobResponse,
+)
 
 __all__ = [
     # Health
@@ -102,4 +118,19 @@ __all__ = [
     "SemanticSearchRequest",
     "SemanticSearchResponse",
     "SimilarChunkResult",
+    # Job
+    "JobType",
+    "JobStatus",
+    "JobPriority",
+    "JobCreate",
+    "JobProgress",
+    "JobSummary",
+    "JobDetail",
+    "JobListResponse",
+    "JobStatsResponse",
+    "ResearchJobConfig",
+    "StartResearchJobRequest",
+    "StartResearchJobResponse",
+    "BatchProcessRequest",
+    "BatchProcessResponse",
 ]

@@ -1,8 +1,10 @@
 """Database session management."""
 
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Generator
 
+from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import get_settings
 
@@ -21,6 +23,23 @@ async_engine = create_async_engine(
 async_session_factory = async_sessionmaker(
     async_engine,
     class_=AsyncSession,
+    expire_on_commit=False,
+    autoflush=False,
+)
+
+# Create sync engine for Celery tasks
+sync_engine = create_engine(
+    settings.database_url_sync,
+    echo=settings.debug,
+    pool_pre_ping=True,
+    pool_size=5,
+    max_overflow=10,
+)
+
+# Create sync session factory
+sync_session_factory = sessionmaker(
+    sync_engine,
+    class_=Session,
     expire_on_commit=False,
     autoflush=False,
 )
@@ -46,3 +65,27 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
             raise
         finally:
             await session.close()
+
+
+# Alias for FastAPI dependency injection
+get_db = get_db_session
+
+
+def get_sync_session() -> Generator[Session, None, None]:
+    """
+    Get a synchronous database session.
+
+    For use in Celery tasks and other sync contexts.
+
+    Yields:
+        Session: SQLAlchemy sync session
+    """
+    session = sync_session_factory()
+    try:
+        yield session
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()

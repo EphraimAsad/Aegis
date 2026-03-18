@@ -2,18 +2,15 @@ Aegis Progress Tracker
 ======================
 
 Project: Aegis
-Last Updated: 2026-03-17 22:00 UTC
+Last Updated: 2026-03-18 00:00 UTC
 
 Repository State Summary:
-- Phases 0, 1, 2, 3, 4, and 5 completed
-- Full document processing and storage pipeline implemented
-- Document model with chunks and embeddings
-- Chunking strategies: fixed-size, sentence, paragraph, section
-- Embedding generation using provider abstraction
-- Summarization and key findings extraction
-- Evidence claim extraction
-- Auto-tagging and categorization
-- Vector retrieval with similarity search
+- Phases 0, 1, 2, 3, 4, 5, and 6 completed
+- Full background job system implemented with Celery + Redis
+- Job model for tracking task status and progress
+- Document processing tasks (chunk, embed, summarize)
+- Research agent workflow for automated literature review
+- Job management API endpoints
 
 Active Architecture Decisions:
 - Frontend: Next.js 14 + TypeScript + Tailwind + shadcn/ui
@@ -30,44 +27,41 @@ Phases:
 [x] Phase 3 — project intake and clarification workflow
 [x] Phase 4 — academic source adapters and search orchestration
 [x] Phase 5 — document processing and storage
-[ ] Phase 6 — long-running jobs and overnight agent workflow
+[x] Phase 6 — long-running jobs and overnight agent workflow
 [ ] Phase 7 — retrieval, search, and formatted outputs
 [ ] Phase 8 — polish, testing, docs, production hardening
 
 Current Phase:
-- Phase 6: Long-running jobs and overnight agent workflow (next)
+- Phase 7: Retrieval, search, and formatted outputs (next)
 
 Current Tasks:
-- Set up Celery with Redis
-- Create job models and task definitions
-- Implement research agent workflow
-- Add job status tracking and progress
-- Create job management API endpoints
-- Build overnight research capabilities
+- Implement library management (collections, folders)
+- Add advanced search with filters
+- Create export functionality (CSV, JSON, Markdown, BibTeX)
+- Build insights and analytics dashboard
+- Implement annotated bibliography generation
 
 Completed This Session:
-- Phase 5: Document processing and storage
-  - Document and DocumentChunk models
-  - Database migration for documents and chunks
-  - Document service with CRUD operations
-  - Chunking strategies (fixed, sentence, paragraph, section)
-  - Embedding generation service with batch processing
-  - Summarization service with multiple levels
-  - Key findings and evidence extraction
-  - Auto-tagging and categorization service
-  - Vector retrieval service with cosine similarity
-  - Document management API endpoints
-  - Semantic search API endpoint
+- Phase 6: Long-running jobs and overnight agent workflow
+  - Celery app configuration with Redis broker
+  - Job model with status, progress, and resource tracking
+  - Database migration for jobs table
+  - Job schemas for API requests/responses
+  - Document processing Celery tasks
+  - Research agent workflow tasks
+  - Job service for CRUD and orchestration
+  - Job management API endpoints
+  - Batch processing support
+  - Job statistics and history
 
 Next Tasks:
-- Configure Celery workers
-- Define background task types
-- Implement research workflow
-- Add progress tracking
-- Build agent orchestration
+- Library organization features
+- Export formatters
+- Analytics and insights
+- Citation generation
 
 Blockers / Notes:
 - None currently
-- pgvector extension required for optimal vector search
-- Provider API keys needed for AI-powered features
-- Embedding dimension depends on model (typically 384-1536)
+- Celery worker needs to be started separately: celery -A app.worker worker
+- Redis required for job queue
+- Research jobs can run overnight for large projects

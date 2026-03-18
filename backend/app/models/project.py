@@ -12,6 +12,7 @@ from app.db.base import Base
 if TYPE_CHECKING:
     from app.models.clarification import ClarificationQuestion
     from app.models.document import Document
+    from app.models.job import Job
 
 
 class ProjectStatus(str, Enum):
@@ -89,6 +90,11 @@ class Project(Base):
     )
     documents: Mapped[list["Document"]] = relationship(
         "Document",
+        back_populates="project",
+        cascade="all, delete-orphan",
+    )
+    jobs: Mapped[list["Job"]] = relationship(
+        "Job",
         back_populates="project",
         cascade="all, delete-orphan",
     )
