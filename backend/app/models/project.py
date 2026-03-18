@@ -11,6 +11,7 @@ from app.db.base import Base
 
 if TYPE_CHECKING:
     from app.models.clarification import ClarificationQuestion
+    from app.models.document import Document
 
 
 class ProjectStatus(str, Enum):
@@ -85,6 +86,11 @@ class Project(Base):
         back_populates="project",
         cascade="all, delete-orphan",
         order_by="ClarificationQuestion.order",
+    )
+    documents: Mapped[list["Document"]] = relationship(
+        "Document",
+        back_populates="project",
+        cascade="all, delete-orphan",
     )
 
     def __repr__(self) -> str:

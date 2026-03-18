@@ -6,7 +6,7 @@ Aegis is a model-agnostic orchestration system that helps researchers conduct co
 
 ## Current Status
 
-**Phase**: 5 - Document Processing (Next)
+**Phase**: 6 - Long-running Jobs (Next)
 
 | Phase | Status |
 |-------|--------|
@@ -15,8 +15,8 @@ Aegis is a model-agnostic orchestration system that helps researchers conduct co
 | Phase 2: Provider Abstraction | Complete |
 | Phase 3: Project Intake | Complete |
 | Phase 4: Source Adapters | Complete |
-| Phase 5: Document Processing | Next |
-| Phase 6: Long-running Jobs | Pending |
+| Phase 5: Document Processing | Complete |
+| Phase 6: Long-running Jobs | Next |
 | Phase 7: Retrieval & Exports | Pending |
 | Phase 8: Polish & Testing | Pending |
 
@@ -32,12 +32,17 @@ Aegis is a model-agnostic orchestration system that helps researchers conduct co
 - **Academic source adapters**: OpenAlex, Crossref, Semantic Scholar, arXiv, PubMed
 - **Multi-source search**: Concurrent search with result deduplication
 - **Normalized paper schema**: Consistent format across all sources
+- **Document storage**: Document and chunk models with full metadata
+- **Chunking strategies**: Fixed-size, sentence, paragraph, and section-based
+- **Embedding generation**: Batch processing with provider abstraction
+- **Summarization**: Multi-level summaries with key findings extraction
+- **Evidence extraction**: Claim identification with confidence scoring
+- **Auto-tagging**: AI-powered and keyword-based document tagging
+- **Semantic search**: Vector similarity search across document chunks
 
 ### Planned
 - **Additional providers**: Gemini support
 - **Long-running jobs**: Background research tasks with progress tracking
-- **Document processing**: Chunking, embeddings, summarization, evidence extraction
-- **Vector retrieval**: Semantic search with pgvector
 - **Export options**: CSV, JSON, Markdown, annotated bibliography
 
 ## Architecture
@@ -184,6 +189,22 @@ Set the `DEFAULT_PROVIDER` to choose which provider to use by default. Providers
 - `GET /api/v1/search` - Multi-source search with deduplication
 - `GET /api/v1/search/doi/{doi}` - Look up paper by DOI
 - `GET /api/v1/search/source/{name}` - Search single source
+
+### Documents
+- `POST /api/v1/documents` - Create a document manually
+- `POST /api/v1/documents/add-paper` - Add paper from search results
+- `POST /api/v1/documents/bulk-add` - Add multiple papers
+- `GET /api/v1/documents` - List documents (with filters)
+- `GET /api/v1/documents/{id}` - Get document details
+- `PATCH /api/v1/documents/{id}` - Update document
+- `DELETE /api/v1/documents/{id}` - Delete document
+- `GET /api/v1/documents/{id}/chunks` - Get document chunks
+- `POST /api/v1/documents/{id}/process` - Process document (chunk, embed, summarize)
+- `POST /api/v1/documents/{id}/summarize` - Generate summary
+- `POST /api/v1/documents/{id}/auto-tag` - Auto-generate tags
+- `GET /api/v1/documents/{id}/related` - Find related documents
+- `POST /api/v1/documents/search/semantic` - Semantic search
+- `GET /api/v1/documents/stats/{project_id}` - Document statistics
 
 ### Academic Sources
 

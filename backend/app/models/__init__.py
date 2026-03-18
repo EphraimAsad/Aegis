@@ -10,6 +10,7 @@ from app.models.clarification import (
     QuestionCategory,
     QuestionType,
 )
+from app.models.document import Document, DocumentChunk, DocumentStatus
 from app.models.project import Project, ProjectStatus
 
 __all__ = [
@@ -19,4 +20,7 @@ __all__ = [
     "ClarificationQuestion",
     "QuestionType",
     "QuestionCategory",
+    "Document",
+    "DocumentChunk",
+    "DocumentStatus",
 ]

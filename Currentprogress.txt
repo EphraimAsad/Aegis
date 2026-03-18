@@ -2,15 +2,18 @@ Aegis Progress Tracker
 ======================
 
 Project: Aegis
-Last Updated: 2026-03-17 20:00 UTC
+Last Updated: 2026-03-17 22:00 UTC
 
 Repository State Summary:
-- Phases 0, 1, 2, 3, and 4 completed
-- Full academic source adapter system implemented
-- Five source adapters: OpenAlex, Crossref, Semantic Scholar, arXiv, PubMed
-- Normalized paper schema for consistent handling
-- Search orchestration with deduplication across sources
-- Search API endpoints for multi-source queries
+- Phases 0, 1, 2, 3, 4, and 5 completed
+- Full document processing and storage pipeline implemented
+- Document model with chunks and embeddings
+- Chunking strategies: fixed-size, sentence, paragraph, section
+- Embedding generation using provider abstraction
+- Summarization and key findings extraction
+- Evidence claim extraction
+- Auto-tagging and categorization
+- Vector retrieval with similarity search
 
 Active Architecture Decisions:
 - Frontend: Next.js 14 + TypeScript + Tailwind + shadcn/ui
@@ -26,45 +29,45 @@ Phases:
 [x] Phase 2 — provider abstraction layer
 [x] Phase 3 — project intake and clarification workflow
 [x] Phase 4 — academic source adapters and search orchestration
-[ ] Phase 5 — document processing and storage
+[x] Phase 5 — document processing and storage
 [ ] Phase 6 — long-running jobs and overnight agent workflow
 [ ] Phase 7 — retrieval, search, and formatted outputs
 [ ] Phase 8 — polish, testing, docs, production hardening
 
 Current Phase:
-- Phase 5: Document processing and storage (next)
+- Phase 6: Long-running jobs and overnight agent workflow (next)
 
 Current Tasks:
-- Create Document model for storing papers
-- Implement document chunking service
-- Add embedding generation using providers
-- Create summarization service
-- Implement evidence extraction
-- Add tagging and categorization
-- Set up vector retrieval with pgvector
+- Set up Celery with Redis
+- Create job models and task definitions
+- Implement research agent workflow
+- Add job status tracking and progress
+- Create job management API endpoints
+- Build overnight research capabilities
 
 Completed This Session:
-- Phase 4: Academic source adapters and search orchestration
-  - Normalized Paper schema for cross-source consistency
-  - Base adapter interface with common functionality
-  - OpenAlex adapter with inverted index abstract parsing
-  - Crossref adapter with citation/reference counts
-  - Semantic Scholar adapter with AI features
-  - arXiv adapter with XML parsing
-  - PubMed adapter with MeSH terms support
-  - Source manager with concurrent search
-  - Deduplication based on DOI/title+year
-  - Search API endpoints
+- Phase 5: Document processing and storage
+  - Document and DocumentChunk models
+  - Database migration for documents and chunks
+  - Document service with CRUD operations
+  - Chunking strategies (fixed, sentence, paragraph, section)
+  - Embedding generation service with batch processing
+  - Summarization service with multiple levels
+  - Key findings and evidence extraction
+  - Auto-tagging and categorization service
+  - Vector retrieval service with cosine similarity
+  - Document management API endpoints
+  - Semantic search API endpoint
 
 Next Tasks:
-- Design Document storage model
-- Implement chunking strategies
-- Add embedding generation
-- Build summarization pipeline
-- Create retrieval service
+- Configure Celery workers
+- Define background task types
+- Implement research workflow
+- Add progress tracking
+- Build agent orchestration
 
 Blockers / Notes:
 - None currently
-- All source APIs are public and free to use
-- Rate limits apply: arXiv (1/sec), PubMed (3/sec without key), others higher
-- Some sources support API keys for higher limits
+- pgvector extension required for optimal vector search
+- Provider API keys needed for AI-powered features
+- Embedding dimension depends on model (typically 384-1536)

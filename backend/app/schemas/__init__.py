@@ -34,6 +34,23 @@ from app.schemas.provider import (
     ProviderInfo,
     ProviderListResponse,
 )
+from app.schemas.document import (
+    AddPaperRequest,
+    BulkAddPapersRequest,
+    BulkAddPapersResponse,
+    DocumentChunkResponse,
+    DocumentCreate,
+    DocumentListResponse,
+    DocumentResponse,
+    DocumentStatus,
+    DocumentSummary,
+    DocumentUpdate,
+    ProcessingRequest,
+    ProcessingStatus,
+    SemanticSearchRequest,
+    SemanticSearchResponse,
+    SimilarChunkResult,
+)
 
 __all__ = [
     # Health
@@ -69,4 +86,20 @@ __all__ = [
     "ClarificationQuestionResponse",
     "ClarificationQuestionsListResponse",
     "ClarificationStatusResponse",
+    # Document
+    "DocumentStatus",
+    "DocumentCreate",
+    "DocumentUpdate",
+    "DocumentResponse",
+    "DocumentSummary",
+    "DocumentListResponse",
+    "DocumentChunkResponse",
+    "AddPaperRequest",
+    "BulkAddPapersRequest",
+    "BulkAddPapersResponse",
+    "ProcessingRequest",
+    "ProcessingStatus",
+    "SemanticSearchRequest",
+    "SemanticSearchResponse",
+    "SimilarChunkResult",
 ]
