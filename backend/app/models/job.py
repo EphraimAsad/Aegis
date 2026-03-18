@@ -11,6 +11,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
 if TYPE_CHECKING:
+    from app.models.job_progress_log import JobProgressLog
     from app.models.project import Project
 
 
@@ -147,6 +148,14 @@ class Job(Base):
         cascade="all, delete-orphan",
     )
 
+    # Progress logs for agent memory
+    progress_logs: Mapped[list["JobProgressLog"]] = relationship(
+        "JobProgressLog",
+        back_populates="job",
+        cascade="all, delete-orphan",
+        order_by="JobProgressLog.sequence",
+    )
+
     # Retry tracking
     retry_count: Mapped[int] = mapped_column(Integer, default=0)
     max_retries: Mapped[int] = mapped_column(Integer, default=3)
@@ -222,3 +231,13 @@ class Job(Base):
         """Mark job as cancelled."""
         self.status = JobStatus.CANCELLED
         self.completed_at = datetime.utcnow()
+
+    def get_latest_checkpoint(self) -> "JobProgressLog | None":
+        """Get the most recent checkpoint for this job."""
+        from app.models.job_progress_log import LogEntryType
+
+        checkpoints = [
+            log for log in self.progress_logs
+            if log.is_checkpoint and log.entry_type == LogEntryType.CHECKPOINT
+        ]
+        return checkpoints[-1] if checkpoints else None

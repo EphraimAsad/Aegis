@@ -16,7 +16,15 @@ from app.schemas.job import (
     StartResearchJobRequest,
     StartResearchJobResponse,
 )
+from app.schemas.job_progress import (
+    JobProgressSummary,
+    LogEntryType,
+    ProgressLogEntry,
+    ProgressLogList,
+    ResumeJobRequest,
+)
 from app.services.job import JobService
+from app.services.job_progress import JobProgressService
 
 router = APIRouter()
 
@@ -336,6 +344,196 @@ async def start_batch_process(
         documents_queued=doc_count,
         status=job.status,
     )
+
+
+@router.get("/{job_id}/progress", response_model=ProgressLogList)
+async def get_job_progress(
+    job_id: int,
+    entry_type: LogEntryType | None = None,
+    phase: str | None = None,
+    checkpoints_only: bool = False,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=200),
+    db: AsyncSession = Depends(get_db),
+) -> ProgressLogList:
+    """
+    Get progress log entries for a job.
+
+    Filter by entry type, phase, or get only checkpoints.
+    """
+    progress_service = JobProgressService(db)
+
+    entries = await progress_service.get_entries(
+        job_id=job_id,
+        entry_type=entry_type,
+        phase=phase,
+        checkpoints_only=checkpoints_only,
+        limit=page_size,
+        offset=(page - 1) * page_size,
+    )
+
+    # Get total count
+    all_entries = await progress_service.get_entries(
+        job_id=job_id,
+        entry_type=entry_type,
+        phase=phase,
+        checkpoints_only=checkpoints_only,
+    )
+
+    return ProgressLogList(
+        entries=[
+            ProgressLogEntry(
+                id=e.id,
+                job_id=e.job_id,
+                entry_type=e.entry_type,
+                phase=e.phase,
+                message=e.message,
+                data=e.data,
+                is_checkpoint=e.is_checkpoint,
+                sequence=e.sequence,
+                created_at=e.created_at,
+            )
+            for e in entries
+        ],
+        total=len(all_entries),
+        job_id=job_id,
+    )
+
+
+@router.get("/{job_id}/progress/summary", response_model=JobProgressSummary)
+async def get_job_progress_summary(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+) -> JobProgressSummary:
+    """
+    Get aggregated progress summary for a job.
+
+    Returns counts of papers found, collected, processed, insights, themes, etc.
+    """
+    progress_service = JobProgressService(db)
+
+    try:
+        summary = await progress_service.get_progress_summary(job_id)
+        return JobProgressSummary(**summary)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.post("/{job_id}/resume", response_model=StartResearchJobResponse)
+async def resume_job(
+    job_id: int,
+    request: ResumeJobRequest,
+    db: AsyncSession = Depends(get_db),
+) -> StartResearchJobResponse:
+    """
+    Resume a job from its last checkpoint.
+
+    If from_checkpoint is False, restarts the job from the beginning.
+    """
+    job_service = JobService(db)
+    progress_service = JobProgressService(db)
+
+    try:
+        job = await job_service.get(job_id)
+
+        # Check if job can be resumed
+        if job.status not in [JobStatus.FAILED, JobStatus.CANCELLED, JobStatus.PAUSED]:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot resume job with status '{job.status}'. "
+                       f"Job must be failed, cancelled, or paused.",
+            )
+
+        # Check for checkpoint if resuming from checkpoint
+        if request.from_checkpoint:
+            checkpoint = await progress_service.get_latest_checkpoint(job_id)
+            if not checkpoint:
+                raise HTTPException(
+                    status_code=400,
+                    detail="No checkpoint found for this job. "
+                           "Set from_checkpoint=false to restart from beginning.",
+                )
+
+        # Reset job status
+        job.status = JobStatus.PENDING
+        job.error_message = None
+        job.error_traceback = None
+        await db.commit()
+
+        # Re-submit to Celery based on job type
+        if job.job_type == JobType.RESEARCH_FULL:
+            from app.worker.tasks.research import run_research_job
+
+            task = run_research_job.delay(
+                job_id=job.id,
+                project_id=job.project_id,
+                config=job.input_data or {},
+                resume_from_checkpoint=request.from_checkpoint,
+            )
+            job.celery_task_id = task.id
+            await db.commit()
+
+            return StartResearchJobResponse(
+                job_id=job.id,
+                celery_task_id=task.id,
+                status=JobStatus.PENDING,
+                message=f"Job resumed {'from checkpoint' if request.from_checkpoint else 'from beginning'}",
+            )
+
+        elif job.job_type == JobType.SEARCH_COLLECT:
+            from app.worker.tasks.research import search_and_collect_task
+
+            input_data = job.input_data or {}
+            task = search_and_collect_task.delay(
+                job_id=job.id,
+                project_id=job.project_id,
+                query=input_data.get("query", ""),
+                sources=input_data.get("sources"),
+                max_per_source=input_data.get("max_per_source", 100),
+                resume_from_checkpoint=request.from_checkpoint,
+            )
+            job.celery_task_id = task.id
+            await db.commit()
+
+            return StartResearchJobResponse(
+                job_id=job.id,
+                celery_task_id=task.id,
+                status=JobStatus.PENDING,
+                message=f"Search/collect job resumed",
+            )
+
+        elif job.job_type == JobType.ANALYZE_COLLECTION:
+            from app.worker.tasks.research import process_collection_task
+
+            input_data = job.input_data or {}
+            task = process_collection_task.delay(
+                job_id=job.id,
+                project_id=job.project_id,
+                generate_summaries=input_data.get("generate_summaries", True),
+                extract_evidence=input_data.get("extract_evidence", True),
+                auto_tag=input_data.get("auto_tag", True),
+                resume_from_checkpoint=request.from_checkpoint,
+            )
+            job.celery_task_id = task.id
+            await db.commit()
+
+            return StartResearchJobResponse(
+                job_id=job.id,
+                celery_task_id=task.id,
+                status=JobStatus.PENDING,
+                message=f"Process collection job resumed",
+            )
+
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Resume not supported for job type '{job.job_type}'",
+            )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.get("/project/{project_id}/active")

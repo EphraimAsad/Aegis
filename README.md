@@ -17,6 +17,7 @@ Aegis is a model-agnostic orchestration system that helps researchers conduct co
 | Phase 4: Source Adapters | Complete |
 | Phase 5: Document Processing | Complete |
 | Phase 6: Long-running Jobs | Complete |
+| Phase 6.5: Agent Memory | Complete |
 | Phase 7: Retrieval & Exports | Next |
 | Phase 8: Polish & Testing | Pending |
 
@@ -43,6 +44,8 @@ Aegis is a model-agnostic orchestration system that helps researchers conduct co
 - **Research workflow**: Automated search, collection, and processing
 - **Job tracking**: Real-time progress, statistics, and history
 - **Batch processing**: Process multiple documents concurrently
+- **Agent memory**: Progress logs for long-running jobs with checkpoint/resume capability
+- **Job checkpointing**: Persistent state snapshots for fault-tolerant job execution
 
 ### Planned
 - **Additional providers**: Gemini support
@@ -219,6 +222,9 @@ Set the `DEFAULT_PROVIDER` to choose which provider to use by default. Providers
 - `POST /api/v1/jobs/{id}/retry` - Retry a failed job
 - `POST /api/v1/jobs/research` - Start research job
 - `POST /api/v1/jobs/batch-process` - Start batch processing
+- `GET /api/v1/jobs/{id}/progress` - Get job progress log entries
+- `GET /api/v1/jobs/{id}/progress/summary` - Get aggregated progress summary
+- `POST /api/v1/jobs/{id}/resume` - Resume job from checkpoint
 - `GET /api/v1/jobs/project/{id}/active` - Get active jobs
 - `GET /api/v1/jobs/project/{id}/history` - Get job history
 

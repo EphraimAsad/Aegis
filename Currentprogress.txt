@@ -5,12 +5,14 @@ Project: Aegis
 Last Updated: 2026-03-18 00:00 UTC
 
 Repository State Summary:
-- Phases 0, 1, 2, 3, 4, 5, and 6 completed
+- Phases 0, 1, 2, 3, 4, 5, 6, and 6.5 completed
 - Full background job system implemented with Celery + Redis
 - Job model for tracking task status and progress
 - Document processing tasks (chunk, embed, summarize)
 - Research agent workflow for automated literature review
 - Job management API endpoints
+- Agent memory system with progress logging and checkpoints
+- Resume-from-checkpoint capability for long-running jobs
 
 Active Architecture Decisions:
 - Frontend: Next.js 14 + TypeScript + Tailwind + shadcn/ui
@@ -28,6 +30,7 @@ Phases:
 [x] Phase 4 — academic source adapters and search orchestration
 [x] Phase 5 — document processing and storage
 [x] Phase 6 — long-running jobs and overnight agent workflow
+[x] Phase 6.5 — agent memory and checkpoint/resume system
 [ ] Phase 7 — retrieval, search, and formatted outputs
 [ ] Phase 8 — polish, testing, docs, production hardening
 
@@ -42,6 +45,17 @@ Current Tasks:
 - Implement annotated bibliography generation
 
 Completed This Session:
+- Phase 6.5: Agent Memory and Checkpoint/Resume System
+  - Fixed CI pipeline (Ruff config migration, package-lock.json generation)
+  - JobProgressLog model for agent memory persistence
+  - Migration for job_progress_logs table with indexes
+  - JobProgressService with sync/async support
+  - Progress log schemas (ProgressLogEntry, CheckpointState, etc.)
+  - Updated research tasks with progress logging
+  - Checkpoint creation at key points in workflow
+  - Resume-from-checkpoint capability for failed/paused jobs
+  - API endpoints: GET progress, GET summary, POST resume
+
 - Phase 6: Long-running jobs and overnight agent workflow
   - Celery app configuration with Redis broker
   - Job model with status, progress, and resource tracking
@@ -65,3 +79,5 @@ Blockers / Notes:
 - Celery worker needs to be started separately: celery -A app.worker worker
 - Redis required for job queue
 - Research jobs can run overnight for large projects
+- Jobs create checkpoints automatically for fault tolerance
+- Resume failed jobs with: POST /api/v1/jobs/{id}/resume

@@ -12,6 +12,7 @@ from app.models.clarification import (
 )
 from app.models.document import Document, DocumentChunk, DocumentStatus
 from app.models.job import Job, JobPriority, JobStatus, JobType
+from app.models.job_progress_log import JobProgressLog, LogEntryType
 from app.models.project import Project, ProjectStatus
 
 __all__ = [
@@ -28,4 +29,6 @@ __all__ = [
     "JobType",
     "JobStatus",
     "JobPriority",
+    "JobProgressLog",
+    "LogEntryType",
 ]

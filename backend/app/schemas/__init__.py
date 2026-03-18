@@ -67,6 +67,15 @@ from app.schemas.job import (
     StartResearchJobRequest,
     StartResearchJobResponse,
 )
+from app.schemas.job_progress import (
+    CheckpointState,
+    JobProgressSummary,
+    LogEntryType,
+    ProgressLogCreate,
+    ProgressLogEntry,
+    ProgressLogList,
+    ResumeJobRequest,
+)
 
 __all__ = [
     # Health
@@ -133,4 +142,12 @@ __all__ = [
     "StartResearchJobResponse",
     "BatchProcessRequest",
     "BatchProcessResponse",
+    # Job Progress
+    "LogEntryType",
+    "ProgressLogEntry",
+    "ProgressLogCreate",
+    "CheckpointState",
+    "ProgressLogList",
+    "JobProgressSummary",
+    "ResumeJobRequest",
 ]
