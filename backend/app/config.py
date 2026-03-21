@@ -54,10 +54,13 @@ class Settings(BaseSettings):
             import json
 
             try:
-                return json.loads(v)
+                result: list[str] = json.loads(v)
+                return result
             except json.JSONDecodeError:
                 return [origin.strip() for origin in v.split(",")]
-        return v
+        if isinstance(v, list):
+            return list(v)
+        return []
 
     @property
     def is_development(self) -> bool:

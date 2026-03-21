@@ -4,7 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
+from app.models.job import JobPriority as ModelJobPriority
 from app.models.job import JobStatus, JobType
+from app.models.job_progress_log import LogEntryType as ModelLogEntryType
 from app.schemas.job import (
     BatchProcessRequest,
     BatchProcessResponse,
@@ -270,7 +272,7 @@ async def start_research_job(
             config=request.config,
             name=request.name,
             description=request.description,
-            priority=request.priority,
+            priority=ModelJobPriority(request.priority.value),
         )
 
         return StartResearchJobResponse(
@@ -319,7 +321,7 @@ async def start_batch_process(
         job_type=JobType.BATCH_PROCESS,
         name=f"Batch process for project {request.project_id}",
         project_id=request.project_id,
-        priority=request.priority,
+        priority=ModelJobPriority(request.priority.value),
         input_data={
             "document_ids": request.document_ids,
             "operations": request.operations,
@@ -364,9 +366,12 @@ async def get_job_progress(
     """
     progress_service = JobProgressService(db)
 
+    # Convert schema enum to model enum if provided
+    model_entry_type = ModelLogEntryType(entry_type.value) if entry_type else None
+
     entries = await progress_service.get_entries(
         job_id=job_id,
-        entry_type=entry_type,
+        entry_type=model_entry_type,
         phase=phase,
         checkpoints_only=checkpoints_only,
         limit=page_size,
@@ -376,7 +381,7 @@ async def get_job_progress(
     # Get total count
     all_entries = await progress_service.get_entries(
         job_id=job_id,
-        entry_type=entry_type,
+        entry_type=model_entry_type,
         phase=phase,
         checkpoints_only=checkpoints_only,
     )

@@ -1,6 +1,7 @@
 """Celery tasks for document processing."""
 
 import traceback
+from typing import Any
 
 from celery import shared_task
 from sqlalchemy import select
@@ -18,7 +19,7 @@ def get_db_session() -> Session:
 
 @shared_task(bind=True, name="app.worker.tasks.documents.process_document")
 def process_document_task(
-    self,
+    self: Any,
     job_id: int,
     document_id: int,
     chunk_size: int = 1000,
@@ -169,7 +170,7 @@ def process_document_task(
 
 @shared_task(bind=True, name="app.worker.tasks.documents.embed_document")
 def embed_document_task(
-    self,
+    self: Any,
     job_id: int,
     document_id: int,
 ) -> dict:
@@ -217,7 +218,7 @@ def embed_document_task(
 
 @shared_task(bind=True, name="app.worker.tasks.documents.summarize_document")
 def summarize_document_task(
-    self,
+    self: Any,
     job_id: int,
     document_id: int,
     level: str = "standard",
@@ -266,7 +267,7 @@ def summarize_document_task(
 
 @shared_task(bind=True, name="app.worker.tasks.documents.batch_process")
 def batch_process_task(
-    self,
+    self: Any,
     job_id: int,
     project_id: int,
     document_ids: list[int] | None = None,

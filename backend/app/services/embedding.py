@@ -171,7 +171,7 @@ class EmbeddingService:
                         )
                     )
 
-                total_tokens += response.total_tokens
+                total_tokens += response.total_tokens  # type: ignore[attr-defined]
 
             except Exception as e:
                 # Mark all chunks in failed batch

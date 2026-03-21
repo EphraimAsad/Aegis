@@ -1,6 +1,7 @@
 """Celery tasks for research workflow with progress logging and checkpointing."""
 
 import traceback
+from typing import Any
 
 from celery import shared_task
 from sqlalchemy import select
@@ -41,7 +42,7 @@ def _restore_from_checkpoint(checkpoint_state: dict) -> dict:
 
 @shared_task(bind=True, name="app.worker.tasks.research.run_research_job")
 def run_research_job(
-    self,
+    self: Any,
     job_id: int,
     project_id: int,
     config: dict,
@@ -137,7 +138,7 @@ def run_research_job(
         progress_service.log_phase_start(
             job_id=job_id,
             phase="research_job",
-            message=f"Starting research job for project '{project.title}'",
+            message=f"Starting research job for project '{project.name}'",
             data={
                 "project_id": project_id,
                 "config": config,
@@ -495,7 +496,7 @@ def run_research_job(
 
 @shared_task(bind=True, name="app.worker.tasks.research.search_and_collect")
 def search_and_collect_task(
-    self,
+    self: Any,
     job_id: int,
     project_id: int,
     query: str,
@@ -637,7 +638,7 @@ def search_and_collect_task(
 
 @shared_task(bind=True, name="app.worker.tasks.research.process_collection")
 def process_collection_task(
-    self,
+    self: Any,
     job_id: int,
     project_id: int,
     generate_summaries: bool = True,
@@ -814,7 +815,7 @@ def process_collection_task(
 
 @shared_task(bind=True, name="app.worker.tasks.research.generate_synthesis")
 def generate_synthesis_task(
-    self,
+    self: Any,
     job_id: int,
     project_id: int,
 ) -> dict:

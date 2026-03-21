@@ -1,6 +1,7 @@
 """Service for advanced document search with filters."""
 
 from collections import Counter
+from typing import Any
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -89,7 +90,7 @@ class AdvancedSearchService:
             query_used=filters.query,
         )
 
-    def _apply_filters(self, query, filters: AdvancedSearchFilters):
+    def _apply_filters(self, query: Any, filters: AdvancedSearchFilters) -> Any:
         """Apply all filters to query."""
         # Text search (keyword in title or abstract)
         if filters.query:
@@ -111,17 +112,17 @@ class AdvancedSearchService:
         # Tags filter
         if filters.tags:
             for tag in filters.tags:
-                query = query.where(Document.tags.any(tag))
+                query = query.where(Document.tags.any(tag))  # type: ignore[arg-type]
 
         # Exclude tags
         if filters.exclude_tags:
             for tag in filters.exclude_tags:
-                query = query.where(~Document.tags.any(tag))
+                query = query.where(~Document.tags.any(tag))  # type: ignore[arg-type]
 
         # Keywords filter
         if filters.keywords:
             for keyword in filters.keywords:
-                query = query.where(Document.keywords.any(keyword))
+                query = query.where(Document.keywords.any(keyword))  # type: ignore[arg-type]
 
         # Authors filter (partial match in JSONB)
         if filters.authors:
@@ -196,13 +197,14 @@ class AdvancedSearchService:
 
     def _apply_sorting(
         self,
-        query,
+        query: Any,
         sort_by: str,
         sort_order: str,
         filters: AdvancedSearchFilters,
-    ):
+    ) -> Any:
         """Apply sorting to query."""
         desc = sort_order.lower() == "desc"
+        order_col: Any
 
         if sort_by == "year":
             order_col = Document.year.desc() if desc else Document.year.asc()
@@ -248,12 +250,12 @@ class AdvancedSearchService:
         documents = list(result.scalars().all())
 
         # Compute facets
-        years = Counter()
-        authors = Counter()
-        journals = Counter()
-        tags = Counter()
-        document_types = Counter()
-        sources = Counter()
+        years: Counter[int] = Counter()
+        authors: Counter[str] = Counter()
+        journals: Counter[str] = Counter()
+        tags: Counter[str] = Counter()
+        document_types: Counter[str] = Counter()
+        sources: Counter[str] = Counter()
 
         for doc in documents:
             # Years

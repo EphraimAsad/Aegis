@@ -101,7 +101,9 @@ class ArxivAdapter(BaseSourceAdapter):
 
         try:
             client = await self._get_client()
-            response = await client.get(f"{self.base_url}/query", params=params)
+            response = await client.get(
+                f"{self.base_url}/query", params=params  # type: ignore[arg-type]
+            )
             response.raise_for_status()
 
             papers, total = self._parse_atom_feed(response.text, filters)

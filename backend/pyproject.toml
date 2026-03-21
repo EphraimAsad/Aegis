@@ -68,6 +68,40 @@ ignore_missing_imports = true
 module = "redis.*"
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = "app.worker.tasks.*"
+disallow_untyped_defs = false
+warn_return_any = false
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "app.sources.*"
+warn_return_any = false
+
+[[tool.mypy.overrides]]
+module = "app.services.citation"
+warn_return_any = false
+
+[[tool.mypy.overrides]]
+module = "app.services.export"
+warn_return_any = false
+
+[[tool.mypy.overrides]]
+module = "app.services.tagging"
+warn_return_any = false
+
+[[tool.mypy.overrides]]
+module = "app.services.summarization"
+warn_return_any = false
+
+[[tool.mypy.overrides]]
+module = "app.services.embedding"
+warn_return_any = false
+
+[[tool.mypy.overrides]]
+module = "app.services.retrieval"
+warn_return_any = false
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]

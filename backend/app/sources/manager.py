@@ -91,11 +91,7 @@ class SourceManager:
         Returns:
             List of source information dicts
         """
-        return [
-            self.get_source_info(name)
-            for name in self._sources
-            if self.get_source_info(name)
-        ]
+        return [info for name in self._sources if (info := self.get_source_info(name))]
 
     async def search(
         self,

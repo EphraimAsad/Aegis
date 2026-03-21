@@ -4,6 +4,8 @@ from fastapi import APIRouter, HTTPException, Query
 
 from app.core.exceptions import NotFoundError, ValidationError
 from app.dependencies import DbSessionDep
+from app.models.clarification import ClarificationQuestion
+from app.models.project import Project
 from app.models.project import ProjectStatus as ModelProjectStatus
 from app.schemas.clarification import (
     AnswerQuestionRequest,
@@ -210,8 +212,8 @@ async def update_project_status(
 @router.post("/{project_id}/clarify", response_model=ClarificationQuestionsListResponse)
 async def start_clarification(
     project_id: int,
+    db: DbSessionDep,
     request: GenerateQuestionsRequest | None = None,
-    db: DbSessionDep = None,
 ) -> ClarificationQuestionsListResponse:
     """
     Start or continue the clarification process.
@@ -342,7 +344,7 @@ async def get_clarification_status(
 # =============================================================================
 
 
-def _project_to_summary(project) -> ProjectSummary:
+def _project_to_summary(project: Project) -> ProjectSummary:
     """Convert a Project model to a ProjectSummary schema."""
     return ProjectSummary(
         id=project.id,
@@ -355,7 +357,7 @@ def _project_to_summary(project) -> ProjectSummary:
     )
 
 
-def _project_to_detail(project) -> ProjectDetail:
+def _project_to_detail(project: Project) -> ProjectDetail:
     """Convert a Project model to a ProjectDetail schema."""
     scope = None
     if project.scope:
@@ -380,7 +382,9 @@ def _project_to_detail(project) -> ProjectDetail:
     )
 
 
-def _question_to_response(question) -> ClarificationQuestionResponse:
+def _question_to_response(
+    question: ClarificationQuestion,
+) -> ClarificationQuestionResponse:
     """Convert a ClarificationQuestion model to response schema."""
     from app.schemas.clarification import QuestionCategory, QuestionOption, QuestionType
 

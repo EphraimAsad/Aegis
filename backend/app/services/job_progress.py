@@ -1,6 +1,7 @@
 """Service for managing job progress logs (agent memory)."""
 
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,11 +29,11 @@ class JobProgressService:
                 JobProgressLog.job_id == job_id
             )
         )
-        return (result.scalar() or 0) + 1
+        return (result.scalar() or 0) + 1  # type: ignore[union-attr]
 
     async def _get_next_sequence_async(self, job_id: int) -> int:
         """Get the next sequence number for a job (async)."""
-        result = await self.db.execute(
+        result = await self.db.execute(  # type: ignore[misc]
             select(func.coalesce(func.max(JobProgressLog.sequence), 0)).where(
                 JobProgressLog.job_id == job_id
             )
@@ -121,7 +122,7 @@ class JobProgressService:
         )
 
         self.db.add(entry)
-        await self.db.flush()
+        await self.db.flush()  # type: ignore[misc]
 
         return entry
 
@@ -367,7 +368,7 @@ class JobProgressService:
             .order_by(JobProgressLog.sequence.desc())
             .limit(1)
         )
-        return result.scalar_one_or_none()
+        return result.scalar_one_or_none()  # type: ignore[union-attr]
 
     def get_entries_sync(
         self,
@@ -392,19 +393,19 @@ class JobProgressService:
         query = query.offset(offset).limit(limit)
 
         result = self.db.execute(query)
-        return list(result.scalars().all())
+        return list(result.scalars().all())  # type: ignore[union-attr]
 
-    def get_progress_summary_sync(self, job_id: int) -> dict:
+    def get_progress_summary_sync(self, job_id: int) -> dict[str, Any]:
         """Get a summary of job progress (sync)."""
         entries = (
-            self.db.execute(
+            self.db.execute(  # type: ignore[union-attr]
                 select(JobProgressLog).where(JobProgressLog.job_id == job_id)
             )
             .scalars()
             .all()
         )
 
-        summary = {
+        summary: dict[str, Any] = {
             "job_id": job_id,
             "total_entries": len(entries),
             "papers_found": 0,
@@ -447,14 +448,14 @@ class JobProgressService:
 
     async def get_latest_checkpoint(self, job_id: int) -> JobProgressLog | None:
         """Get the most recent checkpoint for a job (async)."""
-        result = await self.db.execute(
+        result = await self.db.execute(  # type: ignore[misc]
             select(JobProgressLog)
             .where(JobProgressLog.job_id == job_id)
             .where(JobProgressLog.is_checkpoint.is_(True))
             .order_by(JobProgressLog.sequence.desc())
             .limit(1)
         )
-        return result.scalar_one_or_none()
+        return result.scalar_one_or_none()  # type: ignore[no-any-return]
 
     async def get_entries(
         self,
@@ -482,17 +483,17 @@ class JobProgressService:
         if limit:
             query = query.limit(limit)
 
-        result = await self.db.execute(query)
+        result = await self.db.execute(query)  # type: ignore[misc]
         return list(result.scalars().all())
 
-    async def get_progress_summary(self, job_id: int) -> dict:
+    async def get_progress_summary(self, job_id: int) -> dict[str, Any]:
         """Get a summary of job progress (async)."""
-        result = await self.db.execute(
+        result = await self.db.execute(  # type: ignore[misc]
             select(JobProgressLog).where(JobProgressLog.job_id == job_id)
         )
         entries = result.scalars().all()
 
-        summary = {
+        summary: dict[str, Any] = {
             "job_id": job_id,
             "total_entries": len(entries),
             "papers_found": 0,

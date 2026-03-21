@@ -1,5 +1,7 @@
 """Document service for business logic."""
 
+import builtins
+
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -349,14 +351,14 @@ class DocumentService:
         count = result.scalar() or 0
 
         await self.db.execute(
-            Document.__table__.update()
+            Document.__table__.update()  # type: ignore[attr-defined]
             .where(Document.id == document_id)
             .values(chunk_count=count)
         )
 
         return chunk
 
-    async def get_chunks(self, document_id: int) -> list[DocumentChunk]:
+    async def get_chunks(self, document_id: int) -> builtins.list[DocumentChunk]:
         """
         Get all chunks for a document.
 
@@ -376,7 +378,7 @@ class DocumentService:
     async def update_chunk_embedding(
         self,
         chunk_id: int,
-        embedding: list[float],
+        embedding: builtins.list[float],
         model: str,
     ) -> DocumentChunk:
         """
@@ -430,7 +432,7 @@ class DocumentService:
         return document
 
     async def set_evidence_claims(
-        self, document_id: int, claims: list[dict]
+        self, document_id: int, claims: builtins.list[dict]
     ) -> Document:
         """
         Set the evidence claims for a document.
@@ -451,7 +453,7 @@ class DocumentService:
         return document
 
     async def set_key_findings(
-        self, document_id: int, findings: list[dict]
+        self, document_id: int, findings: builtins.list[dict]
     ) -> Document:
         """
         Set the key findings for a document.

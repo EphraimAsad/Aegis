@@ -221,7 +221,7 @@ class BaseSourceAdapter(ABC):
             httpx.HTTPError: If request fails after retries
         """
         client = await self._get_client()
-        last_error = None
+        last_error: Exception | None = None
 
         for attempt in range(self._max_retries):
             try:

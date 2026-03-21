@@ -484,7 +484,7 @@ class CitationService:
         else:
             return ", ".join(formatted[:-1]) + f", and {formatted[-1]}"
 
-    def _get_author_name(self, author) -> str:
+    def _get_author_name(self, author: dict | str) -> str:
         """Extract author name from various formats."""
         if isinstance(author, dict):
             return author.get("name", "Unknown")

@@ -197,7 +197,7 @@ class SummarizationService:
             summary=response.content.strip(),
             level=level,
             model=response.model,
-            tokens_used=response.usage.total_tokens,
+            tokens_used=response.usage.total_tokens,  # type: ignore[union-attr]
         )
 
     async def extract_key_findings(

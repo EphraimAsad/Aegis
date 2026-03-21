@@ -185,7 +185,7 @@ class SentenceChunker(BaseChunker):
                 index += 1
 
                 # Handle overlap by keeping some sentences
-                overlap_sentences = []
+                overlap_sentences: list[str] = []
                 overlap_length = 0
                 for s in reversed(current_sentences):
                     if overlap_length + len(s) + 1 <= self.overlap:
@@ -385,8 +385,8 @@ class SectionChunker(BaseChunker):
             List of (section_title, section_text, section_type, start_position)
         """
         lines = text.split("\n")
-        sections = []
-        current_title = None
+        sections: list[tuple[str | None, str, str | None, int]] = []
+        current_title: str | None = None
         current_type = None
         current_lines: list[str] = []
         current_start = 0
@@ -439,7 +439,7 @@ class SectionChunker(BaseChunker):
 class ChunkingService:
     """Service for chunking documents."""
 
-    CHUNKERS = {
+    CHUNKERS: dict[ChunkingStrategy, type[BaseChunker]] = {
         ChunkingStrategy.FIXED_SIZE: FixedSizeChunker,
         ChunkingStrategy.SENTENCE: SentenceChunker,
         ChunkingStrategy.PARAGRAPH: ParagraphChunker,

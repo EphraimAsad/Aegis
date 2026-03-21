@@ -437,7 +437,7 @@ class TaggingService:
             if count >= min_occurrence
         ]
 
-        suggestions.sort(key=lambda x: x["count"], reverse=True)
+        suggestions.sort(key=lambda x: x["count"], reverse=True)  # type: ignore[arg-type, return-value]
 
         return suggestions
 

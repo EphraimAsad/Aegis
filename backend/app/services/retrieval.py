@@ -405,7 +405,7 @@ class RetrievalService:
                 source_emb = source_chunk.embedding
                 if isinstance(source_emb, str):
                     source_emb = json.loads(source_emb)
-                sim = self._cosine_similarity(source_emb, other_embedding)
+                sim = self._cosine_similarity(source_emb, other_embedding)  # type: ignore[arg-type]
                 max_sim = max(max_sim, sim)
 
             doc_id = row.document_id

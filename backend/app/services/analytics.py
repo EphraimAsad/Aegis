@@ -1,6 +1,7 @@
 """Service for analytics and insights."""
 
 from collections import Counter, defaultdict
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -129,7 +130,7 @@ class AnalyticsService:
         documents = list(result.scalars().all())
 
         # Group by year
-        year_data = defaultdict(
+        year_data: defaultdict[int, dict[str, int]] = defaultdict(
             lambda: {
                 "count": 0,
                 "citations": 0,
@@ -139,6 +140,8 @@ class AnalyticsService:
 
         for doc in documents:
             year = doc.year
+            if year is None:
+                continue
             year_data[year]["count"] += 1
             year_data[year]["citations"] += doc.citation_count or 0
             if doc.is_open_access:
@@ -185,7 +188,7 @@ class AnalyticsService:
         documents = list(result.scalars().all())
 
         # Collect author data
-        author_data = defaultdict(
+        author_data: defaultdict[str, dict[str, Any]] = defaultdict(
             lambda: {
                 "count": 0,
                 "citations": 0,
@@ -256,8 +259,8 @@ class AnalyticsService:
         documents = list(result.scalars().all())
 
         # Count keywords and tags
-        keyword_counts = Counter()
-        tag_counts = Counter()
+        keyword_counts: Counter[str] = Counter()
+        tag_counts: Counter[str] = Counter()
 
         for doc in documents:
             if doc.keywords:
@@ -299,7 +302,9 @@ class AnalyticsService:
         documents = list(result.scalars().all())
 
         # Group by source
-        source_data = defaultdict(lambda: {"count": 0, "citations": 0})
+        source_data: defaultdict[str, dict[str, int]] = defaultdict(
+            lambda: {"count": 0, "citations": 0}
+        )
 
         for doc in documents:
             source = doc.source_name or "unknown"
