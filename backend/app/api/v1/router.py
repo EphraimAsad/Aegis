@@ -12,6 +12,7 @@ from app.api.v1.endpoints import (
     projects,
     providers,
     search,
+    ws,
 )
 
 v1_router = APIRouter()
@@ -26,3 +27,4 @@ v1_router.include_router(jobs.router, prefix="/jobs", tags=["jobs"])
 v1_router.include_router(exports.router, prefix="/exports", tags=["exports"])
 v1_router.include_router(citations.router, prefix="/citations", tags=["citations"])
 v1_router.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
+v1_router.include_router(ws.router, prefix="/ws", tags=["websocket"])

@@ -239,6 +239,22 @@ def _initialize_default_providers(manager: ProviderManager) -> None:
             anthropic, set_default=(settings.default_provider == "anthropic")
         )
 
+    # Register Google if API key is available
+    if settings.google_api_key:
+        from app.providers.google import GoogleProvider
+
+        google = GoogleProvider(
+            api_key=settings.google_api_key,
+            default_model=(
+                settings.default_model
+                if settings.default_provider == "google"
+                else "gemini-1.5-flash"
+            ),
+        )
+        manager.register(
+            google, set_default=(settings.default_provider == "google")
+        )
+
 
 async def cleanup_providers() -> None:
     """Cleanup provider connections on shutdown."""

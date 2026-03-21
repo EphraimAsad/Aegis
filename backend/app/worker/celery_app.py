@@ -14,6 +14,7 @@ celery_app = Celery(
     include=[
         "app.worker.tasks.documents",
         "app.worker.tasks.research",
+        "app.worker.tasks.maintenance",
     ],
 )
 

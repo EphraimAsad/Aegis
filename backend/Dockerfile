@@ -71,6 +71,9 @@ COPY --from=builder /app/dependencies /app/dependencies
 # Copy application code
 COPY --chown=aegis:aegis . .
 
+# Make entrypoint executable
+RUN chmod +x /app/docker-entrypoint.sh
+
 # Switch to non-root user
 USER aegis
 
@@ -80,6 +83,9 @@ EXPOSE 8000
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import httpx; httpx.get('http://localhost:8000/api/v1/health/live')" || exit 1
+
+# Use entrypoint for migrations
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
 
 # Production command
 CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
