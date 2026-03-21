@@ -25,7 +25,7 @@ async def check_redis_health() -> HealthStatus:
     try:
         client = redis.from_url(settings.redis_url)
         await client.ping()
-        await client.aclose()
+        await client.aclose()  # type: ignore
         return HealthStatus.HEALTHY
     except Exception:
         return HealthStatus.UNHEALTHY

@@ -102,6 +102,10 @@ warn_return_any = false
 module = "app.services.retrieval"
 warn_return_any = false
 
+[[tool.mypy.overrides]]
+module = "app.services.health"
+warn_unused_ignores = false
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
