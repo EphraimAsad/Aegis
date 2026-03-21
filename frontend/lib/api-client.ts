@@ -4,15 +4,25 @@
  * Typed client for communicating with the Aegis backend API.
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import type {
+  HealthResponse,
+  Project,
+  CreateProjectRequest,
+  UpdateProjectRequest,
+  Document,
+  Job,
+  SearchResult,
+  SearchFilters,
+  Provider,
+  ExportRequest,
+  ExportFormat,
+  CitationStyle,
+  AnalyticsOverview,
+  PaginatedResponse,
+  ProjectScope,
+} from '@/types/api';
 
-export interface HealthResponse {
-  status: 'healthy' | 'degraded' | 'unhealthy';
-  version: string;
-  environment: string;
-  database: 'healthy' | 'degraded' | 'unhealthy';
-  redis: 'healthy' | 'degraded' | 'unhealthy';
-}
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export interface ApiError {
   message: string;
@@ -27,9 +37,6 @@ class ApiClient {
     this.baseUrl = baseUrl;
   }
 
-  /**
-   * Make a request to the API.
-   */
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
@@ -63,16 +70,10 @@ class ApiClient {
     return response.json();
   }
 
-  /**
-   * GET request helper.
-   */
   private get<T>(endpoint: string): Promise<T> {
     return this.request<T>(endpoint, { method: 'GET' });
   }
 
-  /**
-   * POST request helper.
-   */
   private post<T>(endpoint: string, data?: unknown): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'POST',
@@ -80,49 +81,297 @@ class ApiClient {
     });
   }
 
+  private patch<T>(endpoint: string, data?: unknown): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'PATCH',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  private put<T>(endpoint: string, data?: unknown): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  private delete<T>(endpoint: string): Promise<T> {
+    return this.request<T>(endpoint, { method: 'DELETE' });
+  }
+
   // =========================================================================
   // Health Endpoints
   // =========================================================================
 
-  /**
-   * Get the health status of the backend.
-   */
   async health(): Promise<HealthResponse> {
     return this.get<HealthResponse>('/api/v1/health');
   }
 
-  /**
-   * Simple liveness check.
-   */
   async healthLive(): Promise<{ status: string }> {
     return this.get<{ status: string }>('/api/v1/health/live');
   }
 
-  /**
-   * Readiness check.
-   */
   async healthReady(): Promise<{ status: string }> {
     return this.get<{ status: string }>('/api/v1/health/ready');
   }
 
   // =========================================================================
-  // Future endpoints will be added here as features are implemented
+  // Provider Endpoints
   // =========================================================================
 
-  // Projects (Phase 3)
-  // async createProject(data: CreateProjectRequest): Promise<Project> { ... }
-  // async getProjects(): Promise<Project[]> { ... }
-  // async getProject(id: string): Promise<Project> { ... }
+  async getProviders(): Promise<Provider[]> {
+    return this.get<Provider[]>('/api/v1/providers');
+  }
 
-  // Search (Phase 4)
-  // async search(query: SearchQuery): Promise<SearchResults> { ... }
+  async getProvider(name: string): Promise<Provider> {
+    return this.get<Provider>(`/api/v1/providers/${name}`);
+  }
 
-  // Documents (Phase 5)
-  // async getDocuments(projectId: string): Promise<Document[]> { ... }
+  async getProviderModels(name: string): Promise<string[]> {
+    return this.get<string[]>(`/api/v1/providers/${name}/models`);
+  }
 
-  // Jobs (Phase 6)
-  // async getJobs(): Promise<Job[]> { ... }
-  // async getJob(id: string): Promise<Job> { ... }
+  async checkProvidersHealth(): Promise<Record<string, boolean>> {
+    return this.get<Record<string, boolean>>('/api/v1/providers/health');
+  }
+
+  // =========================================================================
+  // Project Endpoints
+  // =========================================================================
+
+  async getProjects(
+    page: number = 1,
+    pageSize: number = 20,
+    status?: string
+  ): Promise<PaginatedResponse<Project>> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      page_size: pageSize.toString(),
+    });
+    if (status) params.append('status', status);
+    return this.get<PaginatedResponse<Project>>(`/api/v1/projects?${params}`);
+  }
+
+  async getProject(id: number): Promise<Project> {
+    return this.get<Project>(`/api/v1/projects/${id}`);
+  }
+
+  async createProject(data: CreateProjectRequest): Promise<Project> {
+    return this.post<Project>('/api/v1/projects', data);
+  }
+
+  async updateProject(id: number, data: UpdateProjectRequest): Promise<Project> {
+    return this.patch<Project>(`/api/v1/projects/${id}`, data);
+  }
+
+  async deleteProject(id: number): Promise<void> {
+    return this.delete<void>(`/api/v1/projects/${id}`);
+  }
+
+  async updateProjectScope(id: number, scope: ProjectScope): Promise<Project> {
+    return this.put<Project>(`/api/v1/projects/${id}/scope`, scope);
+  }
+
+  async updateProjectStatus(id: number, status: string): Promise<Project> {
+    return this.put<Project>(`/api/v1/projects/${id}/status`, { status });
+  }
+
+  async startClarification(id: number): Promise<void> {
+    return this.post<void>(`/api/v1/projects/${id}/clarify`);
+  }
+
+  // =========================================================================
+  // Document Endpoints
+  // =========================================================================
+
+  async getDocuments(
+    projectId: number,
+    page: number = 1,
+    pageSize: number = 20,
+    status?: string
+  ): Promise<PaginatedResponse<Document>> {
+    const params = new URLSearchParams({
+      project_id: projectId.toString(),
+      page: page.toString(),
+      page_size: pageSize.toString(),
+    });
+    if (status) params.append('status', status);
+    return this.get<PaginatedResponse<Document>>(`/api/v1/documents?${params}`);
+  }
+
+  async getDocument(id: number): Promise<Document> {
+    return this.get<Document>(`/api/v1/documents/${id}`);
+  }
+
+  async deleteDocument(id: number): Promise<void> {
+    return this.delete<void>(`/api/v1/documents/${id}`);
+  }
+
+  async processDocument(id: number): Promise<Job> {
+    return this.post<Job>(`/api/v1/documents/${id}/process`);
+  }
+
+  async summarizeDocument(id: number): Promise<Document> {
+    return this.post<Document>(`/api/v1/documents/${id}/summarize`);
+  }
+
+  async autoTagDocument(id: number): Promise<Document> {
+    return this.post<Document>(`/api/v1/documents/${id}/auto-tag`);
+  }
+
+  async getDocumentStats(projectId: number): Promise<Record<string, number>> {
+    return this.get<Record<string, number>>(`/api/v1/documents/stats/${projectId}`);
+  }
+
+  // =========================================================================
+  // Search Endpoints
+  // =========================================================================
+
+  async search(
+    query: string,
+    filters?: SearchFilters,
+    sources?: string[],
+    page: number = 1,
+    pageSize: number = 20
+  ): Promise<SearchResult> {
+    const params = new URLSearchParams({
+      query,
+      page: page.toString(),
+      page_size: pageSize.toString(),
+    });
+    if (filters?.year_from) params.append('year_from', filters.year_from.toString());
+    if (filters?.year_to) params.append('year_to', filters.year_to.toString());
+    if (filters?.author) params.append('author', filters.author);
+    if (filters?.open_access_only) params.append('open_access_only', 'true');
+    if (sources) sources.forEach(s => params.append('sources', s));
+    return this.get<SearchResult>(`/api/v1/search?${params}`);
+  }
+
+  async getSearchSources(): Promise<{ name: string; display_name: string }[]> {
+    return this.get<{ name: string; display_name: string }[]>('/api/v1/search/sources');
+  }
+
+  async addPaperToProject(projectId: number, paper: Record<string, unknown>): Promise<Document> {
+    return this.post<Document>('/api/v1/documents/add-paper', {
+      project_id: projectId,
+      paper,
+    });
+  }
+
+  // =========================================================================
+  // Job Endpoints
+  // =========================================================================
+
+  async getJobs(
+    projectId?: number,
+    status?: string,
+    page: number = 1,
+    pageSize: number = 20
+  ): Promise<PaginatedResponse<Job>> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      page_size: pageSize.toString(),
+    });
+    if (projectId) params.append('project_id', projectId.toString());
+    if (status) params.append('status', status);
+    return this.get<PaginatedResponse<Job>>(`/api/v1/jobs?${params}`);
+  }
+
+  async getJob(id: number): Promise<Job> {
+    return this.get<Job>(`/api/v1/jobs/${id}`);
+  }
+
+  async cancelJob(id: number): Promise<Job> {
+    return this.post<Job>(`/api/v1/jobs/${id}/cancel`);
+  }
+
+  async retryJob(id: number): Promise<Job> {
+    return this.post<Job>(`/api/v1/jobs/${id}/retry`);
+  }
+
+  async resumeJob(id: number): Promise<Job> {
+    return this.post<Job>(`/api/v1/jobs/${id}/resume`);
+  }
+
+  async startResearchJob(projectId: number): Promise<Job> {
+    return this.post<Job>('/api/v1/jobs/research', { project_id: projectId });
+  }
+
+  async getJobStats(): Promise<Record<string, number>> {
+    return this.get<Record<string, number>>('/api/v1/jobs/stats');
+  }
+
+  // =========================================================================
+  // Export Endpoints
+  // =========================================================================
+
+  async getExportFormats(): Promise<{ format: ExportFormat; name: string; description: string }[]> {
+    return this.get<{ format: ExportFormat; name: string; description: string }[]>('/api/v1/exports/formats');
+  }
+
+  async exportDocuments(request: ExportRequest): Promise<string> {
+    return this.post<string>('/api/v1/exports', request);
+  }
+
+  async previewExport(
+    projectId: number,
+    format: ExportFormat,
+    documentIds?: number[]
+  ): Promise<string> {
+    const params = new URLSearchParams({
+      project_id: projectId.toString(),
+      format,
+    });
+    if (documentIds) documentIds.forEach(id => params.append('document_ids', id.toString()));
+    return this.get<string>(`/api/v1/exports/preview?${params}`);
+  }
+
+  // =========================================================================
+  // Citation Endpoints
+  // =========================================================================
+
+  async getCitationStyles(): Promise<{ style: CitationStyle; name: string }[]> {
+    return this.get<{ style: CitationStyle; name: string }[]>('/api/v1/citations/styles');
+  }
+
+  async getDocumentCitations(documentId: number): Promise<Record<CitationStyle, string>> {
+    return this.get<Record<CitationStyle, string>>(`/api/v1/citations/document/${documentId}`);
+  }
+
+  async formatCitations(documentIds: number[], style: CitationStyle): Promise<string[]> {
+    return this.post<string[]>('/api/v1/citations/format', {
+      document_ids: documentIds,
+      style,
+    });
+  }
+
+  // =========================================================================
+  // Analytics Endpoints
+  // =========================================================================
+
+  async getAnalyticsOverview(projectId: number): Promise<AnalyticsOverview> {
+    return this.get<AnalyticsOverview>(`/api/v1/analytics/overview?project_id=${projectId}`);
+  }
+
+  async getAnalyticsDashboard(projectId: number): Promise<Record<string, unknown>> {
+    return this.get<Record<string, unknown>>(`/api/v1/analytics/dashboard?project_id=${projectId}`);
+  }
+
+  async getPublicationTrends(projectId: number): Promise<Record<number, number>> {
+    return this.get<Record<number, number>>(`/api/v1/analytics/trends?project_id=${projectId}`);
+  }
+
+  async getTopAuthors(projectId: number, limit: number = 10): Promise<{ name: string; count: number }[]> {
+    return this.get<{ name: string; count: number }[]>(
+      `/api/v1/analytics/authors?project_id=${projectId}&limit=${limit}`
+    );
+  }
+
+  async getKeywordAnalysis(projectId: number): Promise<{ keyword: string; count: number }[]> {
+    return this.get<{ keyword: string; count: number }[]>(
+      `/api/v1/analytics/keywords?project_id=${projectId}`
+    );
+  }
 }
 
 // Export singleton instance

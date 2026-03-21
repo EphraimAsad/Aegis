@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { BookOpen, Database, Server, Cpu } from 'lucide-react';
-import { apiClient, HealthResponse } from '@/lib/api-client';
+import Link from 'next/link';
+import { BookOpen, Database, Server, Cpu, ArrowRight } from 'lucide-react';
+import { apiClient } from '@/lib/api-client';
+import type { HealthResponse } from '@/types/api';
 
 type HealthStatus = 'loading' | 'healthy' | 'degraded' | 'error';
 
@@ -150,9 +152,26 @@ export default function Home() {
           </div>
         </div>
 
+        {/* CTA */}
+        <div className="flex justify-center gap-4">
+          <Link
+            href="/projects"
+            className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors"
+          >
+            Get Started
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link
+            href="/search"
+            className="flex items-center gap-2 px-6 py-3 border rounded-md font-medium hover:bg-muted transition-colors"
+          >
+            Search Papers
+          </Link>
+        </div>
+
         {/* Footer */}
         <div className="text-center text-sm text-muted-foreground">
-          <p>Aegis v0.1.0 - Phase 1: Scaffold and Core Architecture</p>
+          <p>Aegis v0.1.0 - Phase 8: Polish & Testing</p>
         </div>
       </div>
     </main>

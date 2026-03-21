@@ -6,7 +6,7 @@ Aegis is a model-agnostic orchestration system that helps researchers conduct co
 
 ## Current Status
 
-**Phase**: 8 - Polish & Testing (Next)
+**Phase**: 8 - Polish & Testing (In Progress)
 
 | Phase | Status |
 |-------|--------|
@@ -19,7 +19,7 @@ Aegis is a model-agnostic orchestration system that helps researchers conduct co
 | Phase 6: Long-running Jobs | Complete |
 | Phase 6.5: Agent Memory | Complete |
 | Phase 7: Retrieval & Exports | Complete |
-| Phase 8: Polish & Testing | Next |
+| Phase 8: Polish & Testing | **In Progress** |
 
 ## Features
 
