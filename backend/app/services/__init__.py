@@ -1,4 +1,9 @@
-"""Business logic services."""
+"""Business logic services.
+
+Note: Health checks are imported lazily to avoid import issues during testing.
+Use `from app.services.health import check_database_health, check_redis_health`
+when you need health check functions.
+"""
 
 from app.services.advanced_search import (
     AdvancedSearchService,
@@ -15,7 +20,6 @@ from app.services.clarification import ClarificationService
 from app.services.document import DocumentService
 from app.services.embedding import EmbeddingService, get_embedding_service
 from app.services.export import ExportService, get_export_service
-from app.services.health import check_database_health, check_redis_health
 from app.services.job import JobService, get_job_service
 from app.services.job_progress import JobProgressService, get_job_progress_service
 from app.services.project import ProjectService
@@ -26,6 +30,16 @@ from app.services.summarization import (
     get_summarization_service,
 )
 from app.services.tagging import TaggingService, get_tagging_service
+
+
+def __getattr__(name: str):
+    """Lazy import for health check functions."""
+    if name in ("check_database_health", "check_redis_health"):
+        from app.services import health
+
+        return getattr(health, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 __all__ = [
     "check_database_health",

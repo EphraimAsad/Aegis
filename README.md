@@ -6,7 +6,7 @@ Aegis is a model-agnostic orchestration system that helps researchers conduct co
 
 ## Current Status
 
-**Phase**: 8 - Polish & Testing (In Progress)
+**Phase**: 8 - Complete
 
 | Phase | Status |
 |-------|--------|
@@ -19,14 +19,15 @@ Aegis is a model-agnostic orchestration system that helps researchers conduct co
 | Phase 6: Long-running Jobs | Complete |
 | Phase 6.5: Agent Memory | Complete |
 | Phase 7: Retrieval & Exports | Complete |
-| Phase 8: Polish & Testing | **In Progress** |
+| Phase 8: Polish & Testing | Complete |
 
 ## Features
 
 ### Implemented
-- **Multi-provider support**: Ollama (default), OpenAI, Anthropic
-- **Provider abstraction**: Unified interface for chat, completion, embeddings
+- **Multi-provider support**: Ollama (default), OpenAI, Anthropic, Google/Gemini
+- **Provider abstraction**: Unified interface for chat, completion, embeddings, streaming
 - **Health monitoring**: Provider health checks and status
+- **Real-time updates**: WebSocket support for live job progress
 - **Project management**: Create, update, delete research projects
 - **Clarification workflow**: AI-generated questions to refine research scope
 - **Scope definition**: Keywords, disciplines, date ranges, document types
@@ -52,9 +53,8 @@ Aegis is a model-agnostic orchestration system that helps researchers conduct co
 - **Analytics dashboard**: Publication trends, top authors, keyword analysis, source distribution
 
 ### Planned
-- **Additional providers**: Gemini support
 - **Library organization**: Collections and folders
-- **Frontend UI**: Full React interface for all features
+- **Team collaboration**: Multi-user support
 
 ## Architecture
 
@@ -155,16 +155,53 @@ See `.env.example` files in root, `backend/`, and `frontend/` directories for al
 | `DEFAULT_MODEL` | Default model name | llama2 |
 | `OPENAI_API_KEY` | OpenAI API key (optional) | - |
 | `ANTHROPIC_API_KEY` | Anthropic API key (optional) | - |
+| `GOOGLE_API_KEY` | Google AI API key (optional) | - |
 
 ### Provider Configuration
 
 Aegis uses a provider abstraction layer that supports multiple AI providers:
 
-- **Ollama** (default): Local LLM inference, no API key required
-- **OpenAI**: Requires `OPENAI_API_KEY` environment variable
-- **Anthropic**: Requires `ANTHROPIC_API_KEY` environment variable
+| Provider | API Key Required | Models |
+|----------|------------------|--------|
+| **Ollama** (default) | No (local) | llama2, mistral, codellama, etc. |
+| **OpenAI** | `OPENAI_API_KEY` | gpt-4o, gpt-4-turbo, gpt-3.5-turbo |
+| **Anthropic** | `ANTHROPIC_API_KEY` | claude-3-5-sonnet, claude-3-opus |
+| **Google/Gemini** | `GOOGLE_API_KEY` | gemini-1.5-pro, gemini-1.5-flash |
 
-Set the `DEFAULT_PROVIDER` to choose which provider to use by default. Providers are only registered if their API keys are configured (except Ollama, which is always available).
+#### Switching Providers
+
+To change the default AI provider, update your `.env` file:
+
+```bash
+# Use Ollama (default, no API key needed)
+DEFAULT_PROVIDER=ollama
+DEFAULT_MODEL=llama2
+
+# Use OpenAI
+DEFAULT_PROVIDER=openai
+DEFAULT_MODEL=gpt-4o
+OPENAI_API_KEY=sk-...
+
+# Use Anthropic
+DEFAULT_PROVIDER=anthropic
+DEFAULT_MODEL=claude-3-5-sonnet-20241022
+ANTHROPIC_API_KEY=sk-ant-...
+
+# Use Google Gemini
+DEFAULT_PROVIDER=google
+DEFAULT_MODEL=gemini-1.5-pro
+GOOGLE_API_KEY=...
+```
+
+After changing providers, restart the backend:
+```bash
+docker compose restart backend
+```
+
+Verify the provider is active:
+```bash
+curl http://localhost:8000/api/v1/providers | jq
+```
 
 ## API Endpoints
 
@@ -249,6 +286,23 @@ Set the `DEFAULT_PROVIDER` to choose which provider to use by default. Providers
 - `POST /api/v1/jobs/{id}/resume` - Resume job from checkpoint
 - `GET /api/v1/jobs/project/{id}/active` - Get active jobs
 - `GET /api/v1/jobs/project/{id}/history` - Get job history
+
+### WebSocket
+- `WS /api/v1/ws/jobs` - Real-time job status updates
+
+Connect via WebSocket and send JSON messages:
+```javascript
+const ws = new WebSocket('ws://localhost:8000/api/v1/ws/jobs');
+
+// Subscribe to a specific job
+ws.send(JSON.stringify({ action: 'subscribe', job_id: 123 }));
+
+// Receive real-time updates
+ws.onmessage = (event) => {
+  const update = JSON.parse(event.data);
+  console.log('Job update:', update);
+};
+```
 
 ### Academic Sources
 
