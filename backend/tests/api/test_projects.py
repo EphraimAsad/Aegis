@@ -1,9 +1,18 @@
 """Tests for project endpoints."""
 
+import os
+
 import pytest
 from httpx import AsyncClient
 
+# Skip tests that require database connection in CI
+skip_in_ci = pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Requires database connection",
+)
 
+
+@skip_in_ci
 @pytest.mark.asyncio
 async def test_create_project(async_client: AsyncClient) -> None:
     """Test creating a new project."""
@@ -16,19 +25,19 @@ async def test_create_project(async_client: AsyncClient) -> None:
         },
     )
 
-    # Note: This will fail without a database, but tests the endpoint structure
-    assert response.status_code in [201, 500]  # 500 if no DB
+    assert response.status_code == 201
 
 
+@skip_in_ci
 @pytest.mark.asyncio
 async def test_list_projects(async_client: AsyncClient) -> None:
     """Test listing projects."""
     response = await async_client.get("/api/v1/projects")
 
-    # Note: This will fail without a database
-    assert response.status_code in [200, 500]
+    assert response.status_code == 200
 
 
+@skip_in_ci
 @pytest.mark.asyncio
 async def test_list_projects_with_pagination(async_client: AsyncClient) -> None:
     """Test listing projects with pagination parameters."""
@@ -37,9 +46,10 @@ async def test_list_projects_with_pagination(async_client: AsyncClient) -> None:
         params={"page": 1, "page_size": 10},
     )
 
-    assert response.status_code in [200, 500]
+    assert response.status_code == 200
 
 
+@skip_in_ci
 @pytest.mark.asyncio
 async def test_list_projects_with_status_filter(async_client: AsyncClient) -> None:
     """Test listing projects filtered by status."""
@@ -48,16 +58,16 @@ async def test_list_projects_with_status_filter(async_client: AsyncClient) -> No
         params={"status": "draft"},
     )
 
-    assert response.status_code in [200, 500]
+    assert response.status_code == 200
 
 
+@skip_in_ci
 @pytest.mark.asyncio
 async def test_get_project_not_found(async_client: AsyncClient) -> None:
     """Test getting a non-existent project."""
     response = await async_client.get("/api/v1/projects/99999")
 
-    # Should return 404 or 500 (if no DB)
-    assert response.status_code in [404, 500]
+    assert response.status_code == 404
 
 
 @pytest.mark.asyncio
