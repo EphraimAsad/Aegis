@@ -131,4 +131,8 @@ class Project(Base):
         if self.unanswered_questions_count > 0:
             return False
         # Ready if draft, clarifying (all questions answered), or ready
-        return self.status in (ProjectStatus.READY, ProjectStatus.DRAFT, ProjectStatus.CLARIFYING)
+        return self.status in (
+            ProjectStatus.READY,
+            ProjectStatus.DRAFT,
+            ProjectStatus.CLARIFYING,
+        )

@@ -251,9 +251,7 @@ def _initialize_default_providers(manager: ProviderManager) -> None:
                 else "gemini-1.5-flash"
             ),
         )
-        manager.register(
-            google, set_default=(settings.default_provider == "google")
-        )
+        manager.register(google, set_default=(settings.default_provider == "google"))
 
 
 async def cleanup_providers() -> None:

@@ -135,7 +135,9 @@ async def _process_single_document_async(
             except Exception as e:
                 result["summary_generated"] = False
                 result["summary_error"] = str(e)
-                logger.warning(f"Summarization failed for doc {document_id}: {e}", exc_info=True)
+                logger.warning(
+                    f"Summarization failed for doc {document_id}: {e}", exc_info=True
+                )
 
         # Evidence extraction
         if extract_evidence:
@@ -150,7 +152,10 @@ async def _process_single_document_async(
             except Exception as e:
                 result["evidence_extracted"] = False
                 result["evidence_error"] = str(e)
-                logger.warning(f"Evidence extraction failed for doc {document_id}: {e}", exc_info=True)
+                logger.warning(
+                    f"Evidence extraction failed for doc {document_id}: {e}",
+                    exc_info=True,
+                )
 
         # Tagging
         if auto_tag:
@@ -161,7 +166,9 @@ async def _process_single_document_async(
             except Exception as e:
                 result["tags_generated"] = False
                 result["tagging_error"] = str(e)
-                logger.warning(f"Tagging failed for doc {document_id}: {e}", exc_info=True)
+                logger.warning(
+                    f"Tagging failed for doc {document_id}: {e}", exc_info=True
+                )
 
         # Update document
         document.status = DocumentStatus.READY
@@ -380,7 +387,9 @@ def run_research_job(
         if not keywords and project.research_objective:
             # Extract keywords from objective
             keywords = project.research_objective.split()[:5]
-        search_query = " ".join(keywords[:10]) if keywords else project.research_objective[:100]
+        search_query = (
+            " ".join(keywords[:10]) if keywords else project.research_objective[:100]
+        )
 
         # Step 1: Build search query from project scope
         if start_step <= 1:
@@ -411,19 +420,33 @@ def run_research_job(
             job.update_progress(current_step=2, message="Searching academic sources...")
             db.commit()
 
-            max_per_source = config.get("max_papers_per_source", project.max_results_per_source or 100)
-            sources = config.get("sources") or project.sources_enabled or [
-                "openalex",
-                "crossref",
-                "semantic_scholar",
-            ]
+            max_per_source = config.get(
+                "max_papers_per_source", project.max_results_per_source or 100
+            )
+            sources = (
+                config.get("sources")
+                or project.sources_enabled
+                or [
+                    "openalex",
+                    "crossref",
+                    "semantic_scholar",
+                ]
+            )
 
             # Build search filters from project scope
             scope = project.scope or {}
             search_filters = SearchFilters(
                 keywords=scope.get("keywords", []),
-                year_from=int(scope.get("date_range_start", "1900")[:4]) if scope.get("date_range_start") else None,
-                year_to=int(scope.get("date_range_end", "2100")[:4]) if scope.get("date_range_end") else None,
+                year_from=(
+                    int(scope.get("date_range_start", "1900")[:4])
+                    if scope.get("date_range_start")
+                    else None
+                ),
+                year_to=(
+                    int(scope.get("date_range_end", "2100")[:4])
+                    if scope.get("date_range_end")
+                    else None
+                ),
                 open_access_only=scope.get("open_access_only", False),
                 min_citations=scope.get("min_citations", 0),
             )
@@ -530,7 +553,7 @@ def run_research_job(
                         existing = db.execute(
                             select(Document).where(
                                 Document.project_id == project_id,
-                                Document.doi == paper.doi
+                                Document.doi == paper.doi,
                             )
                         ).scalar_one_or_none()
                         if existing:
@@ -543,8 +566,16 @@ def run_research_job(
                         title=paper.title,
                         abstract=paper.abstract,
                         authors=[a.model_dump() for a in paper.authors],
-                        document_type=paper.document_type.value if paper.document_type else "journal-article",
-                        publication_date=paper.publication_date.isoformat() if paper.publication_date else None,
+                        document_type=(
+                            paper.document_type.value
+                            if paper.document_type
+                            else "journal-article"
+                        ),
+                        publication_date=(
+                            paper.publication_date.isoformat()
+                            if paper.publication_date
+                            else None
+                        ),
                         year=paper.year,
                         journal=paper.journal.model_dump() if paper.journal else None,
                         language=paper.language,
@@ -552,7 +583,11 @@ def run_research_job(
                         identifiers=[i.model_dump() for i in paper.identifiers],
                         url=str(paper.url) if paper.url else None,
                         pdf_url=str(paper.pdf_url) if paper.pdf_url else None,
-                        open_access_url=str(paper.open_access_url) if paper.open_access_url else None,
+                        open_access_url=(
+                            str(paper.open_access_url)
+                            if paper.open_access_url
+                            else None
+                        ),
                         citation_count=paper.citation_count,
                         reference_count=paper.reference_count,
                         keywords=paper.keywords,
@@ -564,7 +599,11 @@ def run_research_job(
                         is_retracted=paper.is_retracted,
                         source_name=paper.primary_source,
                         source_id=paper.sources[0].id if paper.sources else None,
-                        source_url=str(paper.sources[0].url) if paper.sources and paper.sources[0].url else None,
+                        source_url=(
+                            str(paper.sources[0].url)
+                            if paper.sources and paper.sources[0].url
+                            else None
+                        ),
                         status=DocumentStatus.PENDING,
                     )
                     db.add(document)
@@ -573,7 +612,11 @@ def run_research_job(
                     # Log each paper collected
                     progress_service.log_paper_collected(
                         job_id=job_id,
-                        message=f"Added: {paper.title[:50]}..." if len(paper.title) > 50 else f"Added: {paper.title}",
+                        message=(
+                            f"Added: {paper.title[:50]}..."
+                            if len(paper.title) > 50
+                            else f"Added: {paper.title}"
+                        ),
                         data={
                             "paper_index": i + 1,
                             "total": len(papers_to_add),
@@ -592,7 +635,9 @@ def run_research_job(
                             current_step=3,
                             step_name="collect_papers",
                             items_processed=list(range(papers_collected)),
-                            items_remaining=list(range(papers_collected, len(papers_to_add))),
+                            items_remaining=list(
+                                range(papers_collected, len(papers_to_add))
+                            ),
                             accumulated_results=result,
                             context_summary=f"Collected {papers_collected}/{len(papers_to_add)} papers",
                         )
@@ -612,7 +657,10 @@ def run_research_job(
                 job_id=job_id,
                 phase="collect_papers",
                 message=f"Added {papers_collected} papers to project ({papers_skipped} duplicates skipped)",
-                data={"papers_collected": papers_collected, "papers_skipped": papers_skipped},
+                data={
+                    "papers_collected": papers_collected,
+                    "papers_skipped": papers_skipped,
+                },
             )
             db.commit()
 
@@ -762,7 +810,9 @@ def run_research_job(
                 try:
                     # Generate comparative synthesis using real summarization service
                     synthesis = asyncio.run(
-                        _generate_synthesis_async(ready_docs, project.research_objective)
+                        _generate_synthesis_async(
+                            ready_docs, project.research_objective
+                        )
                     )
                     result["synthesis"] = synthesis
                     result["synthesis_generated"] = True
@@ -1007,8 +1057,7 @@ def search_and_collect_task(
                 if paper.doi:
                     existing = db.execute(
                         select(Document).where(
-                            Document.project_id == project_id,
-                            Document.doi == paper.doi
+                            Document.project_id == project_id, Document.doi == paper.doi
                         )
                     ).scalar_one_or_none()
                     if existing:
@@ -1021,7 +1070,11 @@ def search_and_collect_task(
                     title=paper.title,
                     abstract=paper.abstract,
                     authors=[a.model_dump() for a in paper.authors],
-                    document_type=paper.document_type.value if paper.document_type else "journal-article",
+                    document_type=(
+                        paper.document_type.value
+                        if paper.document_type
+                        else "journal-article"
+                    ),
                     year=paper.year,
                     doi=paper.doi,
                     url=str(paper.url) if paper.url else None,

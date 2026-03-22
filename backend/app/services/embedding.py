@@ -282,7 +282,11 @@ class EmbeddingService:
 
             await self.db.commit()
 
-            status_value = document.status.value if hasattr(document.status, 'value') else document.status
+            status_value = (
+                document.status.value
+                if hasattr(document.status, "value")
+                else document.status
+            )
             return {
                 "document_id": document_id,
                 "chunks_created": len(db_chunks),

@@ -46,7 +46,7 @@ class AnalyticsService:
 
         # Compute statistics
         status_counts = Counter(
-            doc.status.value if hasattr(doc.status, 'value') else doc.status
+            doc.status.value if hasattr(doc.status, "value") else doc.status
             for doc in documents
         )
         year_counts = Counter(doc.year for doc in documents if doc.year)

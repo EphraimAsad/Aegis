@@ -327,7 +327,11 @@ async def _embed_document_async(document_id: int) -> dict:
             "document_id": document_id,
             "chunks_embedded": len(embedding_result.successful),
             "chunks_failed": len(embedding_result.failed),
-            "model": embedding_result.successful[0].model if embedding_result.successful else None,
+            "model": (
+                embedding_result.successful[0].model
+                if embedding_result.successful
+                else None
+            ),
             "tokens_used": embedding_result.total_tokens,
         }
 
@@ -395,7 +399,11 @@ async def _summarize_document_async(document_id: int, level: str) -> dict:
             }
 
         # Map level string to enum
-        level_enum = SummaryLevel(level) if level in [e.value for e in SummaryLevel] else SummaryLevel.STANDARD
+        level_enum = (
+            SummaryLevel(level)
+            if level in [e.value for e in SummaryLevel]
+            else SummaryLevel.STANDARD
+        )
 
         summarization_service = SummarizationService(db)
         summary_result = await summarization_service.summarize(document, level_enum)
@@ -556,7 +564,9 @@ async def _batch_process_async(
                         await doc_service.set_summary(doc.id, summary_result.summary)
                         await db.commit()
                     except Exception as e:
-                        logger.warning(f"Summary generation failed for document {doc.id}: {e}")
+                        logger.warning(
+                            f"Summary generation failed for document {doc.id}: {e}"
+                        )
 
                 # Tagging
                 if "tag" in operations:
@@ -564,7 +574,9 @@ async def _batch_process_async(
                     try:
                         await tagging_service.auto_tag_document(doc.id, use_ai=True)
                     except Exception as e:
-                        logger.warning(f"Auto-tagging failed for document {doc.id}: {e}")
+                        logger.warning(
+                            f"Auto-tagging failed for document {doc.id}: {e}"
+                        )
 
                 # Mark as ready
                 doc.status = DocumentStatus.READY
@@ -576,10 +588,12 @@ async def _batch_process_async(
                 doc.error_message = str(e)
                 await db.commit()
                 result["failed"] += 1
-                result["errors"].append({
-                    "document_id": doc.id,
-                    "error": str(e),
-                })
+                result["errors"].append(
+                    {
+                        "document_id": doc.id,
+                        "error": str(e),
+                    }
+                )
 
         return result
 
