@@ -18,6 +18,47 @@ Aegis automates the time-consuming process of academic literature review. Enter 
 
 ---
 
+## Why Aegis is Different: Agentic AI
+
+Unlike simple search tools that just return results, Aegis uses **agentic AI** - an autonomous system that performs complex, multi-step tasks on your behalf:
+
+| Traditional Search | Aegis Agentic AI |
+|-------------------|------------------|
+| You search, you filter, you read | AI searches, filters, and summarizes for you |
+| One query at a time | Multi-step autonomous workflow |
+| Manual synthesis | AI identifies themes and gaps |
+| Static results | Learns context through clarification |
+
+### The Agentic Pipeline
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         AEGIS AGENTIC WORKFLOW                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐  │
+│  │   CLARIFY   │    │   SEARCH    │    │   PROCESS   │    │  SYNTHESIZE │  │
+│  │             │───▶│             │───▶│             │───▶│             │  │
+│  │ AI refines  │    │ 5 databases │    │ Chunk/Embed │    │ Themes/Gaps │  │
+│  │ your intent │    │ in parallel │    │ Summarize   │    │ Evidence    │  │
+│  └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘  │
+│         │                                                        │          │
+│         │              Autonomous Background Jobs                │          │
+│         └────────────────────────────────────────────────────────┘          │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+1. **Scope Clarification** - AI asks targeted questions to refine your research intent
+2. **Autonomous Search** - Concurrent queries across OpenAlex, Crossref, Semantic Scholar, arXiv, and PubMed with smart deduplication
+3. **Document Processing** - Background workers chunk text, generate embeddings, and create multi-level summaries
+4. **Semantic Analysis** - Vector embeddings (pgvector) enable finding conceptually related papers beyond keyword matching
+5. **Synthesis** - AI extracts themes, evidence claims with confidence scores, and identifies research gaps
+
+**The result**: What would take days of manual searching, reading, and note-taking happens autonomously while you focus on higher-level thinking.
+
+---
+
 ## Screenshots
 
 ### Research Overview

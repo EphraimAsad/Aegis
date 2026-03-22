@@ -171,6 +171,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set lowercase repo name
+        run: echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -188,8 +191,8 @@ jobs:
           target: production
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}-backend:latest
-            ghcr.io/${{ github.repository }}-backend:${{ github.sha }}
+            ghcr.io/${{ env.REPO_LC }}-backend:latest
+            ghcr.io/${{ env.REPO_LC }}-backend:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -200,7 +203,7 @@ jobs:
           target: production
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}-frontend:latest
-            ghcr.io/${{ github.repository }}-frontend:${{ github.sha }}
+            ghcr.io/${{ env.REPO_LC }}-frontend:latest
+            ghcr.io/${{ env.REPO_LC }}-frontend:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
