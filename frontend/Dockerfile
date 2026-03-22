@@ -4,7 +4,7 @@
 # =============================================================================
 # Base stage - install dependencies
 # =============================================================================
-FROM node:20-alpine AS base
+FROM node:25-alpine AS base
 
 # Install libc6-compat for Alpine compatibility
 RUN apk add --no-cache libc6-compat
@@ -55,7 +55,7 @@ RUN npm run build
 # =============================================================================
 # Production stage
 # =============================================================================
-FROM node:20-alpine AS production
+FROM node:25-alpine AS production
 
 WORKDIR /app
 
