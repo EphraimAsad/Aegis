@@ -20,18 +20,14 @@ Aegis automates the time-consuming process of academic literature review. Enter 
 
 ## Screenshots
 
-> *Screenshots coming soon - run locally to see Aegis in action!*
+### Research Overview
+![Research Overview](READMEPIC/Research%20Overview.png)
 
-```
-+------------------+     +------------------+     +------------------+
-|   Dashboard      |     |  Project View    |     |   Documents      |
-|                  |     |                  |     |                  |
-|  [Projects: 5]   |     |  Research Q:     |     |  [Paper 1] ★★★  |
-|  [Jobs: 2]       |     |  "ML in bio..."  |     |  [Paper 2] ★★   |
-|  [Status: ✓]     |     |                  |     |  [Paper 3] ★★★  |
-|                  |     |  [Start Research]|     |                  |
-+------------------+     +------------------+     +------------------+
-```
+### Analytics Dashboard
+![Analytics Overview](READMEPIC/Analytics%20Overview.png)
+
+### Export Results
+![Export Overview](READMEPIC/Result%20Export%20Overview.png)
 
 ---
 
