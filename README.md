@@ -341,6 +341,12 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
+## Disclaimer
+
+Aegis is **early-stage software** under active development. While we strive for accuracy, AI-generated summaries, findings, and synthesis should always be verified against original sources. Use Aegis as a research assistant, not a replacement for critical reading.
+
+---
+
 <p align="center">
   <strong>Built with care for the research community.</strong>
 </p>
