@@ -4,7 +4,7 @@
 # =============================================================================
 # Base stage - common dependencies
 # =============================================================================
-FROM python:3.11-slim as base
+FROM python:3.14-slim as base
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -50,7 +50,7 @@ RUN pip install --target=/app/dependencies -r requirements.txt
 # =============================================================================
 # Production stage
 # =============================================================================
-FROM python:3.11-slim as production
+FROM python:3.14-slim as production
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
