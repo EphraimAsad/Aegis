@@ -656,7 +656,7 @@ def run_research_job(
                     doc.status = DocumentStatus.PROCESSING
                     db.commit()
 
-                    process_result = asyncio.run(
+                    asyncio.run(
                         _process_single_document_async(
                             doc.id,
                             generate_summaries=config.get("generate_summaries", True),
@@ -1162,7 +1162,7 @@ def process_collection_task(
 
                 # Call real document processing
                 try:
-                    process_result = asyncio.run(
+                    asyncio.run(
                         _process_single_document_async(
                             doc.id,
                             generate_summaries=generate_summaries,
