@@ -107,7 +107,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: aegis-celery-worker
-    command: celery -A app.worker.celery_app worker --loglevel=info -Q default,documents,research
+    command: python -m celery -A app.worker.celery_app worker --loglevel=info -Q default,documents,research
     environment:
       - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-aegis}:${POSTGRES_PASSWORD:-aegis}@postgres:5432/${POSTGRES_DB:-aegis}
       - DATABASE_URL_SYNC=postgresql://${POSTGRES_USER:-aegis}:${POSTGRES_PASSWORD:-aegis}@postgres:5432/${POSTGRES_DB:-aegis}
@@ -132,7 +132,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: aegis-celery-beat
-    command: celery -A app.worker.celery_app beat --loglevel=info
+    command: python -m celery -A app.worker.celery_app beat --loglevel=info
     environment:
       - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-aegis}:${POSTGRES_PASSWORD:-aegis}@postgres:5432/${POSTGRES_DB:-aegis}
       - DATABASE_URL_SYNC=postgresql://${POSTGRES_USER:-aegis}:${POSTGRES_PASSWORD:-aegis}@postgres:5432/${POSTGRES_DB:-aegis}

@@ -45,7 +45,10 @@ class AnalyticsService:
             return AnalyticsOverview(project_id=project_id)
 
         # Compute statistics
-        status_counts = Counter(doc.status.value for doc in documents)
+        status_counts = Counter(
+            doc.status.value if hasattr(doc.status, 'value') else doc.status
+            for doc in documents
+        )
         year_counts = Counter(doc.year for doc in documents if doc.year)
 
         total_citations = sum(doc.citation_count or 0 for doc in documents)

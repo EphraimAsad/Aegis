@@ -42,9 +42,14 @@ class ProjectService:
 
         self.db.add(project)
         await self.db.flush()
-        await self.db.refresh(project)
 
-        return project
+        # Re-fetch with relationships loaded to avoid lazy loading issues
+        result = await self.db.execute(
+            select(Project)
+            .options(selectinload(Project.clarification_questions))
+            .where(Project.id == project.id)
+        )
+        return result.scalar_one()
 
     async def get(self, project_id: int) -> Project:
         """

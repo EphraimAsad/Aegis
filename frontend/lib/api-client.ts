@@ -11,15 +11,28 @@ import type {
   UpdateProjectRequest,
   Document,
   Job,
+  StartResearchJobResponse,
+  ProcessingStatus,
+  JobStatsResponse,
   SearchResult,
   SearchFilters,
   Provider,
+  ModelListResponse,
   ExportRequest,
   ExportFormat,
   CitationStyle,
+  CitationResponse,
+  DocumentCitationsResponse,
   AnalyticsOverview,
   PaginatedResponse,
   ProjectScope,
+  ClarificationQuestion,
+  SemanticSearchRequest,
+  SemanticSearchResponse,
+  RelatedDocument,
+  DocumentChunk,
+  ProgressLogList,
+  JobProgressSummary,
 } from '@/types/api';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -120,19 +133,21 @@ class ApiClient {
   // =========================================================================
 
   async getProviders(): Promise<Provider[]> {
-    return this.get<Provider[]>('/api/v1/providers');
+    const response = await this.get<{ providers: Provider[]; default_provider: string }>('/api/v1/providers');
+    return response.providers;
   }
 
   async getProvider(name: string): Promise<Provider> {
     return this.get<Provider>(`/api/v1/providers/${name}`);
   }
 
-  async getProviderModels(name: string): Promise<string[]> {
-    return this.get<string[]>(`/api/v1/providers/${name}/models`);
+  async getProviderModels(name: string): Promise<ModelListResponse> {
+    return this.get<ModelListResponse>(`/api/v1/providers/${name}/models`);
   }
 
   async checkProvidersHealth(): Promise<Record<string, boolean>> {
-    return this.get<Record<string, boolean>>('/api/v1/providers/health');
+    const response = await this.get<{ providers: Record<string, boolean> }>('/api/v1/providers/health');
+    return response.providers;
   }
 
   // =========================================================================
@@ -149,7 +164,8 @@ class ApiClient {
       page_size: pageSize.toString(),
     });
     if (status) params.append('status', status);
-    return this.get<PaginatedResponse<Project>>(`/api/v1/projects?${params}`);
+    const response = await this.get<{ projects: Project[]; total: number; page: number; page_size: number; has_more?: boolean }>(`/api/v1/projects?${params}`);
+    return { items: response.projects, total: response.total, page: response.page, page_size: response.page_size, has_more: response.has_more ?? false };
   }
 
   async getProject(id: number): Promise<Project> {
@@ -169,7 +185,7 @@ class ApiClient {
   }
 
   async updateProjectScope(id: number, scope: ProjectScope): Promise<Project> {
-    return this.put<Project>(`/api/v1/projects/${id}/scope`, scope);
+    return this.put<Project>(`/api/v1/projects/${id}/scope`, { scope });
   }
 
   async updateProjectStatus(id: number, status: string): Promise<Project> {
@@ -178,6 +194,25 @@ class ApiClient {
 
   async startClarification(id: number): Promise<void> {
     return this.post<void>(`/api/v1/projects/${id}/clarify`);
+  }
+
+  // Clarification endpoints - using correct backend routes
+  async getClarifications(projectId: number): Promise<ClarificationQuestion[]> {
+    const response = await this.get<{ questions: ClarificationQuestion[] }>(`/api/v1/projects/${projectId}/questions`);
+    return response.questions;
+  }
+
+  async generateClarifications(projectId: number): Promise<ClarificationQuestion[]> {
+    const response = await this.post<{ questions: ClarificationQuestion[]; count: number }>(`/api/v1/projects/${projectId}/clarify`);
+    return response.questions;
+  }
+
+  async answerClarification(projectId: number, questionId: number, answer: string): Promise<ClarificationQuestion> {
+    return this.put<ClarificationQuestion>(`/api/v1/projects/${projectId}/questions/${questionId}`, { answer });
+  }
+
+  async getClarificationStatus(projectId: number): Promise<{ is_scope_complete: boolean; is_ready_for_research: boolean; unanswered_count: number }> {
+    return this.get<{ is_scope_complete: boolean; is_ready_for_research: boolean; unanswered_count: number }>(`/api/v1/projects/${projectId}/clarification-status`);
   }
 
   // =========================================================================
@@ -196,7 +231,8 @@ class ApiClient {
       page_size: pageSize.toString(),
     });
     if (status) params.append('status', status);
-    return this.get<PaginatedResponse<Document>>(`/api/v1/documents?${params}`);
+    const response = await this.get<{ documents: Document[]; total: number; page: number; page_size: number; has_more: boolean }>(`/api/v1/documents?${params}`);
+    return { items: response.documents, total: response.total, page: response.page, page_size: response.page_size, has_more: response.has_more };
   }
 
   async getDocument(id: number): Promise<Document> {
@@ -207,16 +243,16 @@ class ApiClient {
     return this.delete<void>(`/api/v1/documents/${id}`);
   }
 
-  async processDocument(id: number): Promise<Job> {
-    return this.post<Job>(`/api/v1/documents/${id}/process`);
+  async processDocument(id: number): Promise<ProcessingStatus> {
+    return this.post<ProcessingStatus>(`/api/v1/documents/${id}/process`);
   }
 
-  async summarizeDocument(id: number): Promise<Document> {
-    return this.post<Document>(`/api/v1/documents/${id}/summarize`);
+  async summarizeDocument(id: number): Promise<ProcessingStatus> {
+    return this.post<ProcessingStatus>(`/api/v1/documents/${id}/summarize`);
   }
 
-  async autoTagDocument(id: number): Promise<Document> {
-    return this.post<Document>(`/api/v1/documents/${id}/auto-tag`);
+  async autoTagDocument(id: number): Promise<ProcessingStatus> {
+    return this.post<ProcessingStatus>(`/api/v1/documents/${id}/auto-tag`);
   }
 
   async getDocumentStats(projectId: number): Promise<Record<string, number>> {
@@ -235,27 +271,38 @@ class ApiClient {
     pageSize: number = 20
   ): Promise<SearchResult> {
     const params = new URLSearchParams({
-      query,
+      q: query,
       page: page.toString(),
       page_size: pageSize.toString(),
     });
     if (filters?.year_from) params.append('year_from', filters.year_from.toString());
     if (filters?.year_to) params.append('year_to', filters.year_to.toString());
     if (filters?.author) params.append('author', filters.author);
-    if (filters?.open_access_only) params.append('open_access_only', 'true');
-    if (sources) sources.forEach(s => params.append('sources', s));
+    if (filters?.open_access_only) params.append('open_access', 'true');
+    if (filters?.min_citations) params.append('min_citations', filters.min_citations.toString());
+    if (filters?.document_types && filters.document_types.length > 0) {
+      params.append('document_types', filters.document_types.join(','));
+    }
+    if (sources && sources.length > 0) params.append('sources', sources.join(','));
     return this.get<SearchResult>(`/api/v1/search?${params}`);
   }
 
   async getSearchSources(): Promise<{ name: string; display_name: string }[]> {
-    return this.get<{ name: string; display_name: string }[]>('/api/v1/search/sources');
+    const response = await this.get<{ sources: { name: string; display_name: string }[]; total: number }>('/api/v1/search/sources');
+    return response.sources;
   }
 
-  async addPaperToProject(projectId: number, paper: Record<string, unknown>): Promise<Document> {
-    return this.post<Document>('/api/v1/documents/add-paper', {
-      project_id: projectId,
-      paper,
-    });
+  async addPaperToProject(
+    projectId: number,
+    paper: { doi?: string; source?: string; primary_source?: string; source_id?: string }
+  ): Promise<Document> {
+    // Backend expects project_id as query param and AddPaperRequest as body
+    const body = {
+      doi: paper.doi,
+      source_name: paper.primary_source || paper.source,
+      source_id: paper.source_id,
+    };
+    return this.post<Document>(`/api/v1/documents/add-paper?project_id=${projectId}`, body);
   }
 
   // =========================================================================
@@ -274,7 +321,8 @@ class ApiClient {
     });
     if (projectId) params.append('project_id', projectId.toString());
     if (status) params.append('status', status);
-    return this.get<PaginatedResponse<Job>>(`/api/v1/jobs?${params}`);
+    const response = await this.get<{ jobs: Job[]; total: number; page: number; page_size: number; has_more: boolean }>(`/api/v1/jobs?${params}`);
+    return { items: response.jobs, total: response.total, page: response.page, page_size: response.page_size, has_more: response.has_more };
   }
 
   async getJob(id: number): Promise<Job> {
@@ -289,16 +337,16 @@ class ApiClient {
     return this.post<Job>(`/api/v1/jobs/${id}/retry`);
   }
 
-  async resumeJob(id: number): Promise<Job> {
-    return this.post<Job>(`/api/v1/jobs/${id}/resume`);
+  async resumeJob(id: number): Promise<StartResearchJobResponse> {
+    return this.post<StartResearchJobResponse>(`/api/v1/jobs/${id}/resume`);
   }
 
-  async startResearchJob(projectId: number): Promise<Job> {
-    return this.post<Job>('/api/v1/jobs/research', { project_id: projectId });
+  async startResearchJob(projectId: number): Promise<StartResearchJobResponse> {
+    return this.post<StartResearchJobResponse>('/api/v1/jobs/research', { project_id: projectId });
   }
 
-  async getJobStats(): Promise<Record<string, number>> {
-    return this.get<Record<string, number>>('/api/v1/jobs/stats');
+  async getJobStats(): Promise<JobStatsResponse> {
+    return this.get<JobStatsResponse>('/api/v1/jobs/stats');
   }
 
   // =========================================================================
@@ -306,11 +354,17 @@ class ApiClient {
   // =========================================================================
 
   async getExportFormats(): Promise<{ format: ExportFormat; name: string; description: string }[]> {
-    return this.get<{ format: ExportFormat; name: string; description: string }[]>('/api/v1/exports/formats');
+    const response = await this.get<{ formats: { id: string; name: string; content_type: string; description: string }[] }>('/api/v1/exports/formats');
+    return response.formats.map(f => ({
+      format: f.id as ExportFormat,
+      name: f.name,
+      description: f.description,
+    }));
   }
 
   async exportDocuments(request: ExportRequest): Promise<string> {
-    return this.post<string>('/api/v1/exports', request);
+    const response = await this.post<{ content: string; filename: string; content_type: string; document_count: number; exported_at: string }>('/api/v1/exports', request);
+    return response.content;
   }
 
   async previewExport(
@@ -323,7 +377,8 @@ class ApiClient {
       format,
     });
     if (documentIds) documentIds.forEach(id => params.append('document_ids', id.toString()));
-    return this.get<string>(`/api/v1/exports/preview?${params}`);
+    const response = await this.get<{ preview: string; total_documents: number; preview_count: number; format: string }>(`/api/v1/exports/preview?${params}`);
+    return response.preview;
   }
 
   // =========================================================================
@@ -331,15 +386,19 @@ class ApiClient {
   // =========================================================================
 
   async getCitationStyles(): Promise<{ style: CitationStyle; name: string }[]> {
-    return this.get<{ style: CitationStyle; name: string }[]>('/api/v1/citations/styles');
+    const response = await this.get<{ styles: { id: string; name: string; description: string; example: string }[] }>('/api/v1/citations/styles');
+    return response.styles.map(s => ({
+      style: s.id as CitationStyle,
+      name: s.name,
+    }));
   }
 
-  async getDocumentCitations(documentId: number): Promise<Record<CitationStyle, string>> {
-    return this.get<Record<CitationStyle, string>>(`/api/v1/citations/document/${documentId}`);
+  async getDocumentCitations(documentId: number): Promise<DocumentCitationsResponse> {
+    return this.get<DocumentCitationsResponse>(`/api/v1/citations/document/${documentId}`);
   }
 
-  async formatCitations(documentIds: number[], style: CitationStyle): Promise<string[]> {
-    return this.post<string[]>('/api/v1/citations/format', {
+  async formatCitations(documentIds: number[], style: CitationStyle): Promise<CitationResponse> {
+    return this.post<CitationResponse>('/api/v1/citations/format', {
       document_ids: documentIds,
       style,
     });
@@ -358,19 +417,87 @@ class ApiClient {
   }
 
   async getPublicationTrends(projectId: number): Promise<Record<number, number>> {
-    return this.get<Record<number, number>>(`/api/v1/analytics/trends?project_id=${projectId}`);
+    // Backend returns { project_id, trends: [{year, count, ...}], from_year, to_year }
+    const response = await this.get<{ trends: { year: number; count: number }[] }>(
+      `/api/v1/analytics/trends?project_id=${projectId}`
+    );
+    // Transform to year -> count map
+    const result: Record<number, number> = {};
+    for (const trend of response.trends || []) {
+      result[trend.year] = trend.count;
+    }
+    return result;
   }
 
   async getTopAuthors(projectId: number, limit: number = 10): Promise<{ name: string; count: number }[]> {
-    return this.get<{ name: string; count: number }[]>(
+    // Backend returns { project_id, authors: [{name, document_count, ...}], total_unique_authors }
+    const response = await this.get<{ authors: { name: string; document_count: number }[] }>(
       `/api/v1/analytics/authors?project_id=${projectId}&limit=${limit}`
     );
+    // Transform to expected format
+    return (response.authors || []).map(a => ({ name: a.name, count: a.document_count }));
   }
 
   async getKeywordAnalysis(projectId: number): Promise<{ keyword: string; count: number }[]> {
-    return this.get<{ keyword: string; count: number }[]>(
+    // Backend returns { project_id, keywords: [{keyword, count, ...}], tags: [...] }
+    const response = await this.get<{ keywords: { keyword: string; count: number }[] }>(
       `/api/v1/analytics/keywords?project_id=${projectId}`
     );
+    // Return just the keywords array
+    return response.keywords || [];
+  }
+
+  // =========================================================================
+  // Semantic Search Endpoints
+  // =========================================================================
+
+  async semanticSearch(projectId: number, request: SemanticSearchRequest): Promise<SemanticSearchResponse> {
+    return this.post<SemanticSearchResponse>(`/api/v1/search/semantic?project_id=${projectId}`, request);
+  }
+
+  // =========================================================================
+  // Related Documents Endpoints
+  // =========================================================================
+
+  async getRelatedDocuments(documentId: number, projectId?: number, topK: number = 5): Promise<RelatedDocument[]> {
+    const params = new URLSearchParams({ top_k: topK.toString() });
+    if (projectId) params.append('project_id', projectId.toString());
+    return this.get<RelatedDocument[]>(`/api/v1/documents/${documentId}/related?${params}`);
+  }
+
+  // =========================================================================
+  // Document Chunks Endpoints
+  // =========================================================================
+
+  async getDocumentChunks(documentId: number): Promise<DocumentChunk[]> {
+    return this.get<DocumentChunk[]>(`/api/v1/documents/${documentId}/chunks`);
+  }
+
+  // =========================================================================
+  // Job Progress Endpoints
+  // =========================================================================
+
+  async getJobProgressLogs(
+    jobId: number,
+    options?: {
+      entry_type?: string;
+      phase?: string;
+      checkpoints_only?: boolean;
+      page?: number;
+      page_size?: number;
+    }
+  ): Promise<ProgressLogList> {
+    const params = new URLSearchParams();
+    if (options?.entry_type) params.append('entry_type', options.entry_type);
+    if (options?.phase) params.append('phase', options.phase);
+    if (options?.checkpoints_only) params.append('checkpoints_only', 'true');
+    params.append('page', (options?.page || 1).toString());
+    params.append('page_size', (options?.page_size || 50).toString());
+    return this.get<ProgressLogList>(`/api/v1/jobs/${jobId}/progress?${params}`);
+  }
+
+  async getJobProgressSummary(jobId: number): Promise<JobProgressSummary> {
+    return this.get<JobProgressSummary>(`/api/v1/jobs/${jobId}/progress/summary`);
   }
 }
 

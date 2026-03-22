@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   BarChart3,
@@ -14,7 +14,7 @@ import {
 import { apiClient } from '@/lib/api-client';
 import type { AnalyticsOverview } from '@/types/api';
 
-export default function AnalyticsPage() {
+function AnalyticsPageContent() {
   const searchParams = useSearchParams();
   const projectId = searchParams.get('project_id');
 
@@ -124,7 +124,7 @@ export default function AnalyticsPage() {
               <BarChart3 className="h-4 w-4" />
               <span className="text-sm">Avg Citations</span>
             </div>
-            <p className="text-2xl font-bold">{overview.average_citations.toFixed(1)}</p>
+            <p className="text-2xl font-bold">{overview.avg_citations.toFixed(1)}</p>
           </div>
           <div className="border rounded-lg p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
@@ -206,5 +206,17 @@ export default function AnalyticsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AnalyticsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    }>
+      <AnalyticsPageContent />
+    </Suspense>
   );
 }

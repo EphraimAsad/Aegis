@@ -83,7 +83,7 @@ export default function SettingsPage() {
                 }`} />
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">{provider.display_name}</span>
+                    <span className="font-medium capitalize">{provider.name}</span>
                     {provider.is_default && (
                       <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded">
                         Default
@@ -91,14 +91,11 @@ export default function SettingsPage() {
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {provider.default_model || 'No default model'}
+                    {provider.is_healthy ? 'Connected' : 'Not connected'}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <div className="text-sm text-muted-foreground">
-                  {provider.available_models.length} models
-                </div>
                 {healthStatus[provider.name] ? (
                   <CheckCircle className="h-5 w-5 text-green-500" />
                 ) : (
@@ -133,30 +130,30 @@ export default function SettingsPage() {
             <tbody>
               {providers.map((provider) => (
                 <tr key={provider.name} className="border-b last:border-0">
-                  <td className="py-2 px-3 font-medium">{provider.display_name}</td>
+                  <td className="py-2 px-3 font-medium capitalize">{provider.name}</td>
                   <td className="text-center py-2 px-3">
-                    {provider.capabilities.chat ? (
+                    {provider.capabilities.supports_chat ? (
                       <CheckCircle className="h-4 w-4 text-green-500 inline" />
                     ) : (
                       <XCircle className="h-4 w-4 text-muted-foreground inline" />
                     )}
                   </td>
                   <td className="text-center py-2 px-3">
-                    {provider.capabilities.completion ? (
+                    {provider.capabilities.supports_completion ? (
                       <CheckCircle className="h-4 w-4 text-green-500 inline" />
                     ) : (
                       <XCircle className="h-4 w-4 text-muted-foreground inline" />
                     )}
                   </td>
                   <td className="text-center py-2 px-3">
-                    {provider.capabilities.embeddings ? (
+                    {provider.capabilities.supports_embeddings ? (
                       <CheckCircle className="h-4 w-4 text-green-500 inline" />
                     ) : (
                       <XCircle className="h-4 w-4 text-muted-foreground inline" />
                     )}
                   </td>
                   <td className="text-center py-2 px-3">
-                    {provider.capabilities.streaming ? (
+                    {provider.capabilities.supports_streaming ? (
                       <CheckCircle className="h-4 w-4 text-green-500 inline" />
                     ) : (
                       <XCircle className="h-4 w-4 text-muted-foreground inline" />

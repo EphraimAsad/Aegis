@@ -1,5 +1,10 @@
-"""Celery tasks for document processing."""
+"""Celery tasks for document processing.
 
+These tasks call the real service implementations for embedding,
+summarization, and tagging.
+"""
+
+import asyncio
 import traceback
 from typing import Any
 
@@ -7,14 +12,179 @@ from celery import shared_task
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.db.session import get_sync_session
+from app.core.logging import get_logger
+from app.db.session import AsyncSessionLocal, get_sync_session
 from app.models.document import Document, DocumentStatus
 from app.models.job import Job
+
+logger = get_logger(__name__)
 
 
 def get_db_session() -> Session:
     """Get a synchronous database session for Celery tasks."""
     return next(get_sync_session())
+
+
+async def _process_document_async(
+    document_id: int,
+    chunk_size: int,
+    chunk_overlap: int,
+    generate_summary: bool,
+    extract_evidence: bool,
+    auto_tag: bool,
+    progress_callback: Any = None,
+) -> dict:
+    """
+    Async implementation of document processing.
+
+    Args:
+        document_id: Document to process
+        chunk_size: Target chunk size
+        chunk_overlap: Overlap between chunks
+        generate_summary: Whether to generate summary
+        extract_evidence: Whether to extract evidence
+        auto_tag: Whether to auto-tag
+        progress_callback: Optional callback for progress updates
+
+    Returns:
+        Processing result dict
+    """
+    from app.services.chunking import ChunkingService, ChunkingStrategy
+    from app.services.document import DocumentService
+    from app.services.embedding import EmbeddingService
+    from app.services.summarization import SummarizationService, SummaryLevel
+    from app.services.tagging import TaggingService
+
+    async with AsyncSessionLocal() as db:
+        doc_service = DocumentService(db)
+        document = await doc_service.get(document_id)
+
+        result = {
+            "document_id": document_id,
+            "title": document.title,
+            "chunks_created": 0,
+            "embeddings_generated": 0,
+            "summary_generated": False,
+            "evidence_extracted": False,
+            "tags_generated": False,
+            "tokens_used": 0,
+        }
+
+        # Step 1: Chunking
+        chunking_service = ChunkingService(
+            strategy=ChunkingStrategy.SENTENCE,
+            chunk_size=chunk_size,
+            overlap=chunk_overlap,
+        )
+
+        chunks = chunking_service.chunk_document(
+            abstract=document.abstract,
+            full_text=document.full_text,
+        )
+
+        # Store chunks in database
+        for chunk in chunks:
+            await doc_service.add_chunk(
+                document_id=document_id,
+                content=chunk.content,
+                chunk_index=chunk.index,
+                start_char=chunk.start_char,
+                end_char=chunk.end_char,
+                section_type=chunk.section_type,
+                section_title=chunk.section_title,
+                token_count=chunk.token_count,
+            )
+
+        await db.commit()
+        result["chunks_created"] = len(chunks)
+
+        # Step 2: Generate embeddings
+        if chunks:
+            embedding_service = EmbeddingService(db)
+
+            # Get the chunks we just created
+            db_chunks = await doc_service.get_chunks(document_id)
+
+            embedding_result = await embedding_service.embed_chunks(db_chunks)
+
+            # Store embeddings
+            for emb_result in embedding_result.successful:
+                await doc_service.update_chunk_embedding(
+                    chunk_id=emb_result.chunk_id,
+                    embedding=emb_result.embedding,
+                    model=emb_result.model,
+                )
+
+            result["embeddings_generated"] = len(embedding_result.successful)
+            result["embedding_model"] = (
+                embedding_result.successful[0].model
+                if embedding_result.successful
+                else None
+            )
+            result["tokens_used"] += embedding_result.total_tokens
+
+            # Update document embedding model
+            if embedding_result.successful:
+                document.embedding_model = embedding_result.successful[0].model
+
+            await db.commit()
+
+        # Step 3: Summarization
+        if generate_summary and (document.abstract or document.full_text):
+            summarization_service = SummarizationService(db)
+
+            try:
+                summary_result = await summarization_service.summarize(
+                    document, SummaryLevel.STANDARD
+                )
+                await doc_service.set_summary(document_id, summary_result.summary)
+                result["summary_generated"] = True
+                result["summary"] = summary_result.summary
+                result["tokens_used"] += summary_result.tokens_used
+                await db.commit()
+            except Exception as e:
+                result["summary_error"] = str(e)
+
+        # Step 4: Evidence extraction
+        if extract_evidence and (document.abstract or document.full_text):
+            summarization_service = SummarizationService(db)
+
+            try:
+                # Extract key findings
+                findings = await summarization_service.extract_key_findings(document)
+                await doc_service.set_key_findings(document_id, findings)
+                result["key_findings_count"] = len(findings)
+
+                # Extract evidence claims
+                claims = await summarization_service.extract_evidence_claims(document)
+                await doc_service.set_evidence_claims(document_id, claims)
+                result["evidence_claims_count"] = len(claims)
+
+                result["evidence_extracted"] = True
+                await db.commit()
+            except Exception as e:
+                result["evidence_error"] = str(e)
+
+        # Step 5: Auto-tagging
+        if auto_tag:
+            tagging_service = TaggingService(db)
+
+            try:
+                tags = await tagging_service.auto_tag_document(
+                    document_id, use_ai=True, min_confidence=0.5
+                )
+                result["tags_generated"] = True
+                result["tags"] = tags
+                result["tags_count"] = len(tags)
+            except Exception as e:
+                result["tags_error"] = str(e)
+
+        # Update document status
+        document.status = DocumentStatus.READY
+        document.chunk_count = len(chunks)
+        await db.commit()
+
+        return result
 
 
 @shared_task(bind=True, name="app.worker.tasks.documents.process_document")
@@ -54,7 +224,7 @@ def process_document_task(
             job.progress_message = "Starting document processing..."
             db.commit()
 
-        # Get document
+        # Get document and update status
         document = db.execute(
             select(Document).where(Document.id == document_id)
         ).scalar_one_or_none()
@@ -62,85 +232,32 @@ def process_document_task(
         if not document:
             raise ValueError(f"Document {document_id} not found")
 
-        # Update document status
         document.status = DocumentStatus.PROCESSING
         db.commit()
 
-        result = {
-            "document_id": document_id,
-            "chunks_created": 0,
-            "embeddings_generated": 0,
-            "summary_generated": False,
-            "evidence_extracted": False,
-            "tags_generated": False,
-        }
-
-        # Step 1: Chunking
+        # Update progress
         if job:
-            job.update_progress(progress=0.1, message="Chunking document...")
+            job.update_progress(progress=0.1, message="Processing document...")
             db.commit()
 
-        from app.services.chunking import ChunkingService, ChunkingStrategy
-
-        chunking_service = ChunkingService(
-            strategy=ChunkingStrategy.SENTENCE,
-            chunk_size=chunk_size,
-            overlap=chunk_overlap,
+        # Run async processing
+        result = asyncio.run(
+            _process_document_async(
+                document_id=document_id,
+                chunk_size=chunk_size,
+                chunk_overlap=chunk_overlap,
+                generate_summary=generate_summary,
+                extract_evidence=extract_evidence,
+                auto_tag=auto_tag,
+            )
         )
-
-        chunks = chunking_service.chunk_document(
-            abstract=document.abstract,
-            full_text=document.full_text,
-        )
-        result["chunks_created"] = len(chunks)
-
-        # Store chunks (simplified for sync context)
-        # In production, use async properly
-        if job:
-            job.update_progress(progress=0.3, message=f"Created {len(chunks)} chunks")
-            db.commit()
-
-        # Step 2: Embedding (placeholder - needs async provider)
-        if job:
-            job.update_progress(progress=0.5, message="Generating embeddings...")
-            db.commit()
-
-        # Note: Full embedding requires async context
-        # This is a simplified sync version
-        result["embeddings_generated"] = len(chunks)
-
-        # Step 3: Summarization
-        if generate_summary:
-            if job:
-                job.update_progress(progress=0.7, message="Generating summary...")
-                db.commit()
-            result["summary_generated"] = True
-
-        # Step 4: Evidence extraction
-        if extract_evidence:
-            if job:
-                job.update_progress(progress=0.85, message="Extracting evidence...")
-                db.commit()
-            result["evidence_extracted"] = True
-
-        # Step 5: Auto-tagging
-        if auto_tag:
-            if job:
-                job.update_progress(progress=0.95, message="Generating tags...")
-                db.commit()
-            result["tags_generated"] = True
-
-        # Mark document as ready
-        document.status = DocumentStatus.READY
-        document.chunk_count = len(chunks)
 
         # Mark job complete
         if job:
-            job.mark_completed(result)
             job.items_processed = 1
             job.items_total = 1
-
-        db.commit()
+            job.mark_completed(result)
+            db.commit()
 
         return result
 
@@ -159,13 +276,60 @@ def process_document_task(
                 document.status = DocumentStatus.ERROR
                 document.error_message = str(e)
                 db.commit()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Failed to update document status after error: {e}")
 
         raise
 
     finally:
         db.close()
+
+
+async def _embed_document_async(document_id: int) -> dict:
+    """Async implementation of document embedding."""
+    from app.services.document import DocumentService
+    from app.services.embedding import EmbeddingService
+
+    async with AsyncSessionLocal() as db:
+        doc_service = DocumentService(db)
+        document = await doc_service.get(document_id)
+
+        # Get existing chunks
+        chunks = await doc_service.get_chunks(document_id)
+
+        if not chunks:
+            return {
+                "document_id": document_id,
+                "chunks_embedded": 0,
+                "model": None,
+                "error": "No chunks found - document may need chunking first",
+            }
+
+        # Generate embeddings
+        embedding_service = EmbeddingService(db)
+        embedding_result = await embedding_service.embed_chunks(chunks)
+
+        # Store embeddings
+        for emb_result in embedding_result.successful:
+            await doc_service.update_chunk_embedding(
+                chunk_id=emb_result.chunk_id,
+                embedding=emb_result.embedding,
+                model=emb_result.model,
+            )
+
+        # Update document embedding model
+        if embedding_result.successful:
+            document.embedding_model = embedding_result.successful[0].model
+
+        await db.commit()
+
+        return {
+            "document_id": document_id,
+            "chunks_embedded": len(embedding_result.successful),
+            "chunks_failed": len(embedding_result.failed),
+            "model": embedding_result.successful[0].model if embedding_result.successful else None,
+            "tokens_used": embedding_result.total_tokens,
+        }
 
 
 @shared_task(bind=True, name="app.worker.tasks.documents.embed_document")
@@ -191,14 +355,11 @@ def embed_document_task(
         if job:
             job.celery_task_id = self.request.id
             job.mark_started()
+            job.progress_message = "Generating embeddings..."
             db.commit()
 
-        # Embedding logic here
-        result = {
-            "document_id": document_id,
-            "chunks_embedded": 0,
-            "model": None,
-        }
+        # Run async embedding
+        result = asyncio.run(_embed_document_async(document_id))
 
         if job:
             job.mark_completed(result)
@@ -214,6 +375,42 @@ def embed_document_task(
 
     finally:
         db.close()
+
+
+async def _summarize_document_async(document_id: int, level: str) -> dict:
+    """Async implementation of document summarization."""
+    from app.services.document import DocumentService
+    from app.services.summarization import SummarizationService, SummaryLevel
+
+    async with AsyncSessionLocal() as db:
+        doc_service = DocumentService(db)
+        document = await doc_service.get(document_id)
+
+        if not document.abstract and not document.full_text:
+            return {
+                "document_id": document_id,
+                "level": level,
+                "summary": None,
+                "error": "Document has no content to summarize",
+            }
+
+        # Map level string to enum
+        level_enum = SummaryLevel(level) if level in [e.value for e in SummaryLevel] else SummaryLevel.STANDARD
+
+        summarization_service = SummarizationService(db)
+        summary_result = await summarization_service.summarize(document, level_enum)
+
+        # Save summary to document
+        await doc_service.set_summary(document_id, summary_result.summary)
+        await db.commit()
+
+        return {
+            "document_id": document_id,
+            "level": level,
+            "summary": summary_result.summary,
+            "model": summary_result.model,
+            "tokens_used": summary_result.tokens_used,
+        }
 
 
 @shared_task(bind=True, name="app.worker.tasks.documents.summarize_document")
@@ -241,13 +438,11 @@ def summarize_document_task(
         if job:
             job.celery_task_id = self.request.id
             job.mark_started()
+            job.progress_message = "Generating summary..."
             db.commit()
 
-        result = {
-            "document_id": document_id,
-            "level": level,
-            "summary": None,
-        }
+        # Run async summarization
+        result = asyncio.run(_summarize_document_async(document_id, level))
 
         if job:
             job.mark_completed(result)
@@ -265,6 +460,130 @@ def summarize_document_task(
         db.close()
 
 
+async def _batch_process_async(
+    project_id: int,
+    document_ids: list[int] | None,
+    operations: list[str],
+    progress_callback: Any = None,
+) -> dict:
+    """Async implementation of batch document processing."""
+    from app.services.chunking import ChunkingService, ChunkingStrategy
+    from app.services.document import DocumentService
+    from app.services.embedding import EmbeddingService
+    from app.services.summarization import SummarizationService, SummaryLevel
+    from app.services.tagging import TaggingService
+
+    async with AsyncSessionLocal() as db:
+        doc_service = DocumentService(db)
+
+        # Get documents to process
+        if document_ids:
+            documents = []
+            for doc_id in document_ids:
+                try:
+                    doc = await doc_service.get(doc_id)
+                    documents.append(doc)
+                except Exception as e:
+                    logger.debug(f"Failed to fetch document {doc_id}: {e}")
+        else:
+            documents, _ = await doc_service.list(
+                project_id, page_size=1000, status=DocumentStatus.PENDING
+            )
+
+        result = {
+            "project_id": project_id,
+            "total_documents": len(documents),
+            "processed": 0,
+            "failed": 0,
+            "operations": operations,
+            "errors": [],
+        }
+
+        for doc in documents:
+            try:
+                doc.status = DocumentStatus.PROCESSING
+                await db.commit()
+
+                # Chunking (if needed and requested)
+                if "chunk" in operations or "embed" in operations:
+                    existing_chunks = await doc_service.get_chunks(doc.id)
+                    if not existing_chunks:
+                        chunking_service = ChunkingService(
+                            strategy=ChunkingStrategy.SENTENCE,
+                            chunk_size=1000,
+                            overlap=200,
+                        )
+                        chunks = chunking_service.chunk_document(
+                            abstract=doc.abstract,
+                            full_text=doc.full_text,
+                        )
+                        for chunk in chunks:
+                            await doc_service.add_chunk(
+                                document_id=doc.id,
+                                content=chunk.content,
+                                chunk_index=chunk.index,
+                                start_char=chunk.start_char,
+                                end_char=chunk.end_char,
+                                section_type=chunk.section_type,
+                                section_title=chunk.section_title,
+                                token_count=chunk.token_count,
+                            )
+                        await db.commit()
+
+                # Embedding
+                if "embed" in operations:
+                    chunks = await doc_service.get_chunks(doc.id)
+                    if chunks:
+                        embedding_service = EmbeddingService(db)
+                        embedding_result = await embedding_service.embed_chunks(chunks)
+                        for emb_result in embedding_result.successful:
+                            await doc_service.update_chunk_embedding(
+                                chunk_id=emb_result.chunk_id,
+                                embedding=emb_result.embedding,
+                                model=emb_result.model,
+                            )
+                        if embedding_result.successful:
+                            doc.embedding_model = embedding_result.successful[0].model
+                        await db.commit()
+
+                # Summarization
+                if "summarize" in operations and (doc.abstract or doc.full_text):
+                    summarization_service = SummarizationService(db)
+                    try:
+                        summary_result = await summarization_service.summarize(
+                            doc, SummaryLevel.STANDARD
+                        )
+                        await doc_service.set_summary(doc.id, summary_result.summary)
+                        await db.commit()
+                    except Exception as e:
+                        logger.warning(f"Summary generation failed for document {doc.id}: {e}")
+
+                # Tagging
+                if "tag" in operations:
+                    tagging_service = TaggingService(db)
+                    try:
+                        await tagging_service.auto_tag_document(doc.id, use_ai=True)
+                    except Exception as e:
+                        logger.warning(f"Auto-tagging failed for document {doc.id}: {e}")
+
+                # Mark as ready
+                doc.status = DocumentStatus.READY
+                await db.commit()
+                result["processed"] += 1
+
+            except Exception as e:
+                doc.status = DocumentStatus.ERROR
+                doc.error_message = str(e)
+                await db.commit()
+                result["failed"] += 1
+                result["errors"].append({
+                    "document_id": doc.id,
+                    "error": str(e),
+                })
+
+        return result
+
+
 @shared_task(bind=True, name="app.worker.tasks.documents.batch_process")
 def batch_process_task(
     self: Any,
@@ -280,7 +599,7 @@ def batch_process_task(
         job_id: Job ID for tracking
         project_id: Project containing documents
         document_ids: Specific documents (None = all pending)
-        operations: Operations to perform
+        operations: Operations to perform (chunk, embed, summarize, tag)
 
     Returns:
         Batch processing result
@@ -292,61 +611,24 @@ def batch_process_task(
         if job:
             job.celery_task_id = self.request.id
             job.mark_started()
+            job.progress_message = "Starting batch processing..."
             db.commit()
 
-        operations = operations or ["embed", "summarize", "tag"]
+        operations = operations or ["chunk", "embed", "summarize", "tag"]
 
-        # Get documents to process
-        query = select(Document).where(Document.project_id == project_id)
-        if document_ids:
-            query = query.where(Document.id.in_(document_ids))
-        else:
-            query = query.where(Document.status == DocumentStatus.PENDING)
-
-        documents = list(db.execute(query).scalars().all())
-
-        if job:
-            job.items_total = len(documents)
-            job.progress_message = f"Processing {len(documents)} documents..."
-            db.commit()
-
-        processed = 0
-        failed = 0
-
-        for doc in documents:
-            try:
-                # Process document
-                doc.status = DocumentStatus.PROCESSING
-                db.commit()
-
-                # Simplified processing
-                doc.status = DocumentStatus.READY
-                processed += 1
-
-                if job:
-                    job.update_progress(
-                        items_processed=processed,
-                        message=f"Processed {processed}/{len(documents)}",
-                    )
-                    db.commit()
-
-            except Exception as e:
-                doc.status = DocumentStatus.ERROR
-                doc.error_message = str(e)
-                failed += 1
-                db.commit()
-
-        result = {
-            "project_id": project_id,
-            "total_documents": len(documents),
-            "processed": processed,
-            "failed": failed,
-            "operations": operations,
-        }
+        # Run async batch processing
+        result = asyncio.run(
+            _batch_process_async(
+                project_id=project_id,
+                document_ids=document_ids,
+                operations=operations,
+            )
+        )
 
         if job:
-            job.items_processed = processed
-            job.items_failed = failed
+            job.items_total = result["total_documents"]
+            job.items_processed = result["processed"]
+            job.items_failed = result["failed"]
             job.mark_completed(result)
             db.commit()
 

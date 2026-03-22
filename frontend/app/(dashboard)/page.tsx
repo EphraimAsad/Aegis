@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
-  BookOpen,
   FolderKanban,
   FileText,
   Activity,
@@ -100,7 +100,7 @@ export default function DashboardPage() {
         <div className="border rounded-lg p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-purple-500/10 rounded-lg">
-              <BookOpen className="h-5 w-5 text-purple-500" />
+              <Image src="/icon.ico" alt="Aegis" width={20} height={20} />
             </div>
             <div>
               <p className="text-2xl font-bold">{health?.version || '0.1.0'}</p>
@@ -178,8 +178,8 @@ export default function DashboardPage() {
                       </p>
                     </div>
                     <span className={`px-2 py-1 rounded text-xs ${
-                      project.status === 'complete' ? 'bg-green-100 text-green-700' :
-                      project.status === 'processing' ? 'bg-blue-100 text-blue-700' :
+                      project.status === 'completed' ? 'bg-green-100 text-green-700' :
+                      project.status === 'active' ? 'bg-blue-100 text-blue-700' :
                       'bg-gray-100 text-gray-700'
                     }`}>
                       {project.status}
@@ -206,16 +206,16 @@ export default function DashboardPage() {
               <div key={job.id} className="p-3 bg-muted/50 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
                   <p className="font-medium">{job.job_type.replace('_', ' ')}</p>
-                  <span className="text-sm text-muted-foreground">{job.progress}%</span>
+                  <span className="text-sm text-muted-foreground">{Math.round(job.progress * 100)}%</span>
                 </div>
                 <div className="h-2 bg-muted rounded overflow-hidden">
                   <div
                     className="h-full bg-primary transition-all"
-                    style={{ width: `${job.progress}%` }}
+                    style={{ width: `${job.progress * 100}%` }}
                   />
                 </div>
-                {job.message && (
-                  <p className="text-xs text-muted-foreground mt-1">{job.message}</p>
+                {job.progress_message && (
+                  <p className="text-xs text-muted-foreground mt-1">{job.progress_message}</p>
                 )}
               </div>
             ))}

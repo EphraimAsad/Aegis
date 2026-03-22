@@ -193,11 +193,16 @@ class SummarizationService:
             model=self._model_name,
         )
 
+        # Get tokens_used from usage dict (may be None)
+        tokens_used = 0
+        if response.usage:
+            tokens_used = response.usage.get("total_tokens", 0)
+
         return SummaryResult(
             summary=response.content.strip(),
             level=level,
             model=response.model,
-            tokens_used=response.usage.total_tokens,  # type: ignore[union-attr]
+            tokens_used=tokens_used,
         )
 
     async def extract_key_findings(

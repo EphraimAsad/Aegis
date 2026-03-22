@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Search,
   Loader2,
@@ -12,7 +12,25 @@ import {
   User,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
-import type { SearchResult, Paper, SearchFilters } from '@/types/api';
+import type { SearchResult, Paper, SearchFilters, Project } from '@/types/api';
+
+const DOCUMENT_TYPES = [
+  { value: 'article', label: 'Article' },
+  { value: 'review', label: 'Review' },
+  { value: 'preprint', label: 'Preprint' },
+  { value: 'book', label: 'Book' },
+  { value: 'book-chapter', label: 'Book Chapter' },
+  { value: 'conference-paper', label: 'Conference Paper' },
+  { value: 'thesis', label: 'Thesis' },
+];
+
+const SEARCH_SOURCES = [
+  { value: 'openalex', label: 'OpenAlex' },
+  { value: 'crossref', label: 'Crossref' },
+  { value: 'semantic_scholar', label: 'Semantic Scholar' },
+  { value: 'pubmed', label: 'PubMed' },
+  { value: 'arxiv', label: 'arXiv' },
+];
 
 export default function SearchPage() {
   const [query, setQuery] = useState('');
@@ -21,7 +39,20 @@ export default function SearchPage() {
   const [error, setError] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<SearchFilters>({});
+  const [selectedSources, setSelectedSources] = useState<string[]>([]);
   const [addingPaper, setAddingPaper] = useState<string | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+
+  useEffect(() => {
+    // Fetch projects for the "Add to project" dropdown
+    apiClient.getProjects(1, 100).then(data => {
+      setProjects(data.items);
+      if (data.items.length > 0) {
+        setSelectedProjectId(data.items[0].id);
+      }
+    }).catch(console.error);
+  }, []);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +62,11 @@ export default function SearchPage() {
     setError(null);
 
     try {
-      const data = await apiClient.search(query, filters);
+      const data = await apiClient.search(
+        query,
+        filters,
+        selectedSources.length > 0 ? selectedSources : undefined
+      );
       setResults(data);
     } catch (err) {
       setError('Search failed. Please try again.');
@@ -41,11 +76,37 @@ export default function SearchPage() {
     }
   };
 
-  const handleAddPaper = async (paper: Paper, projectId: number) => {
+  const toggleSource = (source: string) => {
+    setSelectedSources(prev =>
+      prev.includes(source)
+        ? prev.filter(s => s !== source)
+        : [...prev, source]
+    );
+  };
+
+  const toggleDocType = (docType: string) => {
+    const current = filters.document_types || [];
+    setFilters({
+      ...filters,
+      document_types: current.includes(docType)
+        ? current.filter(d => d !== docType)
+        : [...current, docType],
+    });
+  };
+
+  const handleAddPaper = async (paper: Paper) => {
+    if (!selectedProjectId) {
+      setError('Please select a project first');
+      return;
+    }
     const paperId = paper.doi || paper.title;
     setAddingPaper(paperId);
     try {
-      await apiClient.addPaperToProject(projectId, paper as unknown as Record<string, unknown>);
+      await apiClient.addPaperToProject(selectedProjectId, {
+        doi: paper.doi,
+        primary_source: paper.primary_source,
+        source_id: paper.doi, // Use DOI as source ID fallback
+      });
       // Show success feedback
     } catch (err) {
       console.error(err);
@@ -97,38 +158,99 @@ export default function SearchPage() {
 
         {/* Filters */}
         {showFilters && (
-          <div className="grid gap-4 sm:grid-cols-4 p-4 border rounded-md bg-muted/30">
-            <div>
-              <label className="block text-sm font-medium mb-1">Year From</label>
-              <input
-                type="number"
-                value={filters.year_from || ''}
-                onChange={(e) => setFilters({ ...filters, year_from: e.target.value ? Number(e.target.value) : undefined })}
-                placeholder="2020"
-                className="w-full px-3 py-1.5 border rounded-md bg-background text-sm"
-              />
+          <div className="space-y-4 p-4 border rounded-md bg-muted/30">
+            {/* Basic Filters */}
+            <div className="grid gap-4 sm:grid-cols-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Year From</label>
+                <input
+                  type="number"
+                  value={filters.year_from || ''}
+                  onChange={(e) => setFilters({ ...filters, year_from: e.target.value ? Number(e.target.value) : undefined })}
+                  placeholder="2020"
+                  className="w-full px-3 py-1.5 border rounded-md bg-background text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Year To</label>
+                <input
+                  type="number"
+                  value={filters.year_to || ''}
+                  onChange={(e) => setFilters({ ...filters, year_to: e.target.value ? Number(e.target.value) : undefined })}
+                  placeholder="2024"
+                  className="w-full px-3 py-1.5 border rounded-md bg-background text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Author</label>
+                <input
+                  type="text"
+                  value={filters.author || ''}
+                  onChange={(e) => setFilters({ ...filters, author: e.target.value || undefined })}
+                  placeholder="Author name"
+                  className="w-full px-3 py-1.5 border rounded-md bg-background text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Min Citations</label>
+                <input
+                  type="number"
+                  value={filters.min_citations || ''}
+                  onChange={(e) => setFilters({ ...filters, min_citations: e.target.value ? Number(e.target.value) : undefined })}
+                  placeholder="0"
+                  min="0"
+                  className="w-full px-3 py-1.5 border rounded-md bg-background text-sm"
+                />
+              </div>
             </div>
+
+            {/* Sources Selection */}
             <div>
-              <label className="block text-sm font-medium mb-1">Year To</label>
-              <input
-                type="number"
-                value={filters.year_to || ''}
-                onChange={(e) => setFilters({ ...filters, year_to: e.target.value ? Number(e.target.value) : undefined })}
-                placeholder="2024"
-                className="w-full px-3 py-1.5 border rounded-md bg-background text-sm"
-              />
+              <label className="block text-sm font-medium mb-2">Sources</label>
+              <div className="flex flex-wrap gap-2">
+                {SEARCH_SOURCES.map((source) => (
+                  <button
+                    key={source.value}
+                    type="button"
+                    onClick={() => toggleSource(source.value)}
+                    className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                      selectedSources.includes(source.value)
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted hover:bg-muted/80'
+                    }`}
+                  >
+                    {source.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {selectedSources.length === 0 ? 'All sources selected' : `${selectedSources.length} source(s) selected`}
+              </p>
             </div>
+
+            {/* Document Types */}
             <div>
-              <label className="block text-sm font-medium mb-1">Author</label>
-              <input
-                type="text"
-                value={filters.author || ''}
-                onChange={(e) => setFilters({ ...filters, author: e.target.value || undefined })}
-                placeholder="Author name"
-                className="w-full px-3 py-1.5 border rounded-md bg-background text-sm"
-              />
+              <label className="block text-sm font-medium mb-2">Document Types</label>
+              <div className="flex flex-wrap gap-2">
+                {DOCUMENT_TYPES.map((docType) => (
+                  <button
+                    key={docType.value}
+                    type="button"
+                    onClick={() => toggleDocType(docType.value)}
+                    className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                      filters.document_types?.includes(docType.value)
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted hover:bg-muted/80'
+                    }`}
+                  >
+                    {docType.label}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="flex items-end">
+
+            {/* Checkboxes */}
+            <div className="flex items-center gap-4">
               <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
@@ -139,6 +261,24 @@ export default function SearchPage() {
                 Open Access Only
               </label>
             </div>
+
+            {/* Add to Project Selection */}
+            {projects.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium mb-1">Add papers to project</label>
+                <select
+                  value={selectedProjectId || ''}
+                  onChange={(e) => setSelectedProjectId(Number(e.target.value))}
+                  className="w-full px-3 py-1.5 border rounded-md bg-background text-sm"
+                >
+                  {projects.map((project) => (
+                    <option key={project.id} value={project.id}>
+                      {project.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
         )}
       </form>
@@ -198,7 +338,7 @@ export default function SearchPage() {
                             Open Access
                           </span>
                         )}
-                        <span className="text-xs">{paper.source}</span>
+                        <span className="text-xs">{paper.primary_source || paper.source}</span>
                       </div>
                       {paper.abstract && (
                         <p className="text-sm text-muted-foreground line-clamp-2">
@@ -219,10 +359,10 @@ export default function SearchPage() {
                         </a>
                       )}
                       <button
-                        onClick={() => handleAddPaper(paper, 1)} // TODO: Select project
-                        disabled={addingPaper === (paper.doi || paper.title)}
+                        onClick={() => handleAddPaper(paper)}
+                        disabled={addingPaper === (paper.doi || paper.title) || !selectedProjectId}
                         className="p-2 hover:bg-muted rounded-md transition-colors disabled:opacity-50"
-                        title="Add to project"
+                        title={selectedProjectId ? 'Add to project' : 'Select a project first'}
                       >
                         {addingPaper === (paper.doi || paper.title) ? (
                           <Loader2 className="h-4 w-4 animate-spin" />

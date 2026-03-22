@@ -13,17 +13,19 @@ import {
   AlertCircle,
   Download,
   Search,
+  BarChart3,
+  MessageCircle,
+  HelpCircle,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
-import type { Project, Document, Job, ProjectStatus } from '@/types/api';
+import type { Project, Document, Job, ProjectStatus, ClarificationQuestion } from '@/types/api';
 
 const statusColors: Record<ProjectStatus, string> = {
   draft: 'bg-gray-100 text-gray-700',
   clarifying: 'bg-yellow-100 text-yellow-700',
   ready: 'bg-blue-100 text-blue-700',
-  searching: 'bg-purple-100 text-purple-700',
-  processing: 'bg-orange-100 text-orange-700',
-  complete: 'bg-green-100 text-green-700',
+  active: 'bg-purple-100 text-purple-700',
+  completed: 'bg-green-100 text-green-700',
   archived: 'bg-gray-200 text-gray-600',
 };
 
@@ -35,22 +37,29 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [clarifications, setClarifications] = useState<ClarificationQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [startingJob, setStartingJob] = useState(false);
 
+  // Use backend readiness fields when available, fallback to local counting
+  const unansweredQuestions = project?.unanswered_questions ?? clarifications.filter((q) => !q.is_answered).length;
+  const isReadyForResearch = project?.is_ready_for_research ?? (unansweredQuestions === 0 && project?.status !== 'archived');
+
   useEffect(() => {
     async function fetchData() {
       try {
-        const [projectData, docsData, jobsData] = await Promise.all([
+        const [projectData, docsData, jobsData, clarificationsData] = await Promise.all([
           apiClient.getProject(projectId),
           apiClient.getDocuments(projectId, 1, 10).catch(() => ({ items: [] })),
           apiClient.getJobs(projectId, undefined, 1, 5).catch(() => ({ items: [] })),
+          apiClient.getClarifications(projectId).catch(() => []),
         ]);
         setProject(projectData);
         setDocuments(docsData.items);
         setJobs(jobsData.items);
+        setClarifications(clarificationsData);
       } catch (err) {
         setError('Failed to load project');
         console.error(err);
@@ -138,14 +147,21 @@ export default function ProjectDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={handleStartResearch}
-            disabled={startingJob || project.status === 'searching' || project.status === 'processing'}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
-          >
-            {startingJob ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-            Start Research
-          </button>
+          <div className="relative group">
+            <button
+              onClick={handleStartResearch}
+              disabled={startingJob || project.status === 'active' || !isReadyForResearch}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+            >
+              {startingJob ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+              Start Research
+            </button>
+            {!isReadyForResearch && unansweredQuestions > 0 && (
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                {unansweredQuestions} unanswered question{unansweredQuestions > 1 ? 's' : ''} remaining
+              </div>
+            )}
+          </div>
           <button
             onClick={handleDelete}
             disabled={deleting}
@@ -232,7 +248,7 @@ export default function ProjectDetailPage() {
                     <div className="mt-2 h-1 bg-muted rounded overflow-hidden">
                       <div
                         className="h-full bg-primary transition-all"
-                        style={{ width: `${job.progress}%` }}
+                        style={{ width: `${job.progress * 100}%` }}
                       />
                     </div>
                   )}
@@ -242,14 +258,39 @@ export default function ProjectDetailPage() {
           )}
         </div>
 
+        {/* Clarifications Alert */}
+        {unansweredQuestions > 0 && (
+          <div className="border border-yellow-200 bg-yellow-50 rounded-lg p-4 md:col-span-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <HelpCircle className="h-5 w-5 text-yellow-600" />
+                <div>
+                  <p className="font-medium text-yellow-800">
+                    {unansweredQuestions} Clarification Question{unansweredQuestions > 1 ? 's' : ''} Pending
+                  </p>
+                  <p className="text-sm text-yellow-600">
+                    Answer these questions to refine your research scope before starting
+                  </p>
+                </div>
+              </div>
+              <Link
+                href={`/projects/${projectId}/clarifications`}
+                className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors text-sm font-medium"
+              >
+                Answer Questions
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* Quick Actions */}
         <div className="border rounded-lg p-6 md:col-span-2">
           <h2 className="font-semibold mb-4">Quick Actions</h2>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <button
               onClick={handleStartResearch}
-              disabled={startingJob}
-              className="flex items-center gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors text-left"
+              disabled={startingJob || !isReadyForResearch}
+              className="flex items-center gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors text-left disabled:opacity-50"
             >
               <Search className="h-5 w-5 text-primary" />
               <div>
@@ -258,6 +299,21 @@ export default function ProjectDetailPage() {
               </div>
             </button>
             <Link
+              href={`/projects/${projectId}/clarifications`}
+              className="flex items-center gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors relative"
+            >
+              <MessageCircle className="h-5 w-5 text-primary" />
+              <div>
+                <p className="font-medium text-sm">Clarifications</p>
+                <p className="text-xs text-muted-foreground">Refine research scope</p>
+              </div>
+              {unansweredQuestions > 0 && (
+                <span className="absolute top-2 right-2 px-2 py-0.5 bg-yellow-500 text-white text-xs rounded-full">
+                  {unansweredQuestions}
+                </span>
+              )}
+            </Link>
+            <Link
               href={`/projects/${projectId}/export`}
               className="flex items-center gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
             >
@@ -265,6 +321,16 @@ export default function ProjectDetailPage() {
               <div>
                 <p className="font-medium text-sm">Export</p>
                 <p className="text-xs text-muted-foreground">Download as CSV, BibTeX, etc.</p>
+              </div>
+            </Link>
+            <Link
+              href={`/analytics?project_id=${projectId}`}
+              className="flex items-center gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+            >
+              <BarChart3 className="h-5 w-5 text-primary" />
+              <div>
+                <p className="font-medium text-sm">Analytics</p>
+                <p className="text-xs text-muted-foreground">View project statistics</p>
               </div>
             </Link>
             <Link

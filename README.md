@@ -1,12 +1,18 @@
 # Aegis
 
+[![CI](https://github.com/EphraimAsad/Aegis/actions/workflows/ci.yml/badge.svg)](https://github.com/EphraimAsad/Aegis/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Node.js 20+](https://img.shields.io/badge/node.js-20+-green.svg)](https://nodejs.org/)
+[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
+
 **Research-focused agentic AI wrapper for academia**
 
 Aegis is a model-agnostic orchestration system that helps researchers conduct comprehensive academic literature reviews. It handles project intake, clarification, source search, organization, storage, retrieval, and long-running research jobs.
 
 ## Current Status
 
-**Phase**: 8 - Complete
+**Phase**: 9 - Production Ready
 
 | Phase | Status |
 |-------|--------|
@@ -20,6 +26,22 @@ Aegis is a model-agnostic orchestration system that helps researchers conduct co
 | Phase 6.5: Agent Memory | Complete |
 | Phase 7: Retrieval & Exports | Complete |
 | Phase 8: Polish & Testing | Complete |
+| Phase 8.5: Integration | Complete |
+| **Phase 9: Production Ready** | **Complete** |
+
+### System Components
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| Source Adapters (5) | **Working** | OpenAlex, Crossref, Semantic Scholar, arXiv, PubMed |
+| ChunkingService | **Working** | Fixed-size, sentence, paragraph, section strategies |
+| EmbeddingService | **Working** | Batch processing with provider abstraction |
+| SummarizationService | **Working** | Multi-level summaries with key findings |
+| Research Worker Task | **Working** | Full agentic workflow: search → collect → process → synthesize |
+| Document Processing | **Working** | Automatic chunking, embedding, summarization, tagging |
+| Frontend/Backend Types | **Aligned** | TypeScript types match Pydantic schemas |
+| Export System | **Working** | CSV, JSON, Markdown, BibTeX with error handling |
+| Analytics | **Working** | Project-level statistics and trends |
 
 ## Features
 
@@ -112,12 +134,17 @@ cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 ```
 
-3. Start all services:
+3. Pull the default LLM model (if using Ollama):
+```bash
+ollama pull llama3.2:3b
+```
+
+4. Start all services:
 ```bash
 docker-compose up -d
 ```
 
-4. Access the application:
+5. Access the application:
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:8000
 - API Docs: http://localhost:8000/docs
@@ -152,7 +179,7 @@ See `.env.example` files in root, `backend/`, and `frontend/` directories for al
 | `REDIS_URL` | Redis connection string | redis://localhost:6379/0 |
 | `OLLAMA_BASE_URL` | Ollama API endpoint | http://localhost:11434 |
 | `DEFAULT_PROVIDER` | Default LLM provider | ollama |
-| `DEFAULT_MODEL` | Default model name | llama2 |
+| `DEFAULT_MODEL` | Default model name | llama3.2:3b |
 | `OPENAI_API_KEY` | OpenAI API key (optional) | - |
 | `ANTHROPIC_API_KEY` | Anthropic API key (optional) | - |
 | `GOOGLE_API_KEY` | Google AI API key (optional) | - |
@@ -175,7 +202,7 @@ To change the default AI provider, update your `.env` file:
 ```bash
 # Use Ollama (default, no API key needed)
 DEFAULT_PROVIDER=ollama
-DEFAULT_MODEL=llama2
+DEFAULT_MODEL=llama3.2:3b
 
 # Use OpenAI
 DEFAULT_PROVIDER=openai
@@ -201,6 +228,27 @@ docker compose restart backend
 Verify the provider is active:
 ```bash
 curl http://localhost:8000/api/v1/providers | jq
+```
+
+### Rebuilding After Code Changes
+
+If you modify the code, you need to rebuild the Docker containers:
+
+```bash
+# Rebuild and restart all services
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+
+# Or rebuild specific services
+docker-compose build --no-cache backend celery-worker frontend
+docker-compose up -d
+```
+
+Check container health:
+```bash
+docker-compose ps
+docker-compose logs backend --tail=20
 ```
 
 ## API Endpoints
@@ -340,10 +388,55 @@ Aegis/
 └── README.md
 ```
 
+## Using Local Ollama
+
+To use a local Ollama installation instead of Docker's:
+
+1. Create `docker-compose.override.yml`:
+```yaml
+services:
+  ollama:
+    profiles:
+      - disabled
+  backend:
+    environment:
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - DEFAULT_MODEL=llama3.2:3b
+  celery-worker:
+    environment:
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - DEFAULT_MODEL=llama3.2:3b
+```
+
+2. Ensure Ollama is running locally: `ollama serve`
+
+3. Start Docker services: `docker-compose up -d`
+
 ## Contributing
 
-This project is under active development. See `Currentprogress.txt` for current status and `Masterprompt.txt` for full specifications.
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Quick Start for Contributors
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes
+4. Run tests: `cd backend && pytest tests/ -v`
+5. Run linting: `cd backend && ruff check app tests && black --check app tests`
+6. Commit your changes: `git commit -m 'feat: add amazing feature'`
+7. Push to the branch: `git push origin feature/amazing-feature`
+8. Open a Pull Request
+
+### Code Style
+
+- **Backend**: Python code follows [Ruff](https://github.com/astral-sh/ruff) and [Black](https://github.com/psf/black) formatting
+- **Frontend**: TypeScript/React follows ESLint configuration
+- All code must pass CI checks before merging
+
+## Security
+
+If you discover a security vulnerability, please open an issue with the `security` label instead of a public disclosure.
 
 ## License
 
-[License TBD]
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

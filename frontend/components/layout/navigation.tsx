@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   BookOpen,
@@ -28,7 +29,7 @@ export function Navigation() {
     <nav className="fixed left-0 top-0 h-full w-64 bg-card border-r p-4">
       {/* Logo */}
       <Link href="/" className="flex items-center gap-2 mb-8 px-2">
-        <BookOpen className="h-8 w-8 text-primary" />
+        <Image src="/icon.ico" alt="Aegis" width={32} height={32} />
         <span className="text-xl font-bold">Aegis</span>
       </Link>
 

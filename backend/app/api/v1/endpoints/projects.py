@@ -346,10 +346,11 @@ async def get_clarification_status(
 
 def _project_to_summary(project: Project) -> ProjectSummary:
     """Convert a Project model to a ProjectSummary schema."""
+    status_value = project.status.value if hasattr(project.status, 'value') else project.status
     return ProjectSummary(
         id=project.id,
         name=project.name,
-        status=ProjectStatus(project.status.value),
+        status=ProjectStatus(status_value),
         research_objective=project.research_objective,
         created_at=project.created_at,
         updated_at=project.updated_at,
@@ -363,12 +364,14 @@ def _project_to_detail(project: Project) -> ProjectDetail:
     if project.scope:
         scope = ProjectScope(**project.scope)
 
+    # Handle status as either string or enum
+    status_value = project.status.value if hasattr(project.status, 'value') else project.status
     return ProjectDetail(
         id=project.id,
         name=project.name,
         description=project.description,
         research_objective=project.research_objective,
-        status=ProjectStatus(project.status.value),
+        status=ProjectStatus(status_value),
         scope=scope,
         provider=project.provider,
         model=project.model,
@@ -390,13 +393,24 @@ def _question_to_response(
 
     options = None
     if question.options:
-        options = [QuestionOption(**opt) for opt in question.options]
+        # Handle both dict-format options and string options
+        parsed_options = []
+        for opt in question.options:
+            if isinstance(opt, dict):
+                parsed_options.append(QuestionOption(**opt))
+            elif isinstance(opt, str):
+                parsed_options.append(QuestionOption(value=opt, label=opt))
+        options = parsed_options if parsed_options else None
+
+    # Handle both enum and string values from database
+    qt_val = question.question_type.value if hasattr(question.question_type, 'value') else question.question_type
+    cat_val = question.category.value if hasattr(question.category, 'value') else question.category
 
     return ClarificationQuestionResponse(
         id=question.id,
         question=question.question,
-        question_type=QuestionType(question.question_type.value),
-        category=QuestionCategory(question.category.value),
+        question_type=QuestionType(qt_val),
+        category=QuestionCategory(cat_val),
         options=options,
         help_text=question.help_text,
         scope_field=question.scope_field,

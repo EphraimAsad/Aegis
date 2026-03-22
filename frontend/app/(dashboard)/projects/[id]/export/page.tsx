@@ -16,14 +16,14 @@ import {
   Check,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
-import type { Project, ExportFormat, CitationStyle } from '@/types/api';
+import type { Project, ExportFormat } from '@/types/api';
 
 const formatIcons: Record<ExportFormat, typeof FileText> = {
   csv: FileSpreadsheet,
   json: FileJson,
   markdown: FileText,
   bibtex: BookOpen,
-  annotated: FileText,
+  annotated_bibliography: FileText,
 };
 
 const formatDescriptions: Record<ExportFormat, string> = {
@@ -31,16 +31,7 @@ const formatDescriptions: Record<ExportFormat, string> = {
   json: 'Structured data format for programming',
   markdown: 'Formatted text with summaries and notes',
   bibtex: 'Bibliography format for LaTeX documents',
-  annotated: 'Markdown with annotations and evidence',
-};
-
-const citationStyleNames: Record<CitationStyle, string> = {
-  apa: 'APA (7th Edition)',
-  chicago: 'Chicago',
-  mla: 'MLA',
-  harvard: 'Harvard',
-  ieee: 'IEEE',
-  bibtex: 'BibTeX',
+  annotated_bibliography: 'Markdown with annotations and evidence',
 };
 
 export default function ProjectExportPage() {
@@ -51,7 +42,6 @@ export default function ProjectExportPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedFormat, setSelectedFormat] = useState<ExportFormat>('csv');
-  const [selectedStyle, setSelectedStyle] = useState<CitationStyle>('apa');
   const [exporting, setExporting] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -73,12 +63,16 @@ export default function ProjectExportPage() {
 
   const handlePreview = async () => {
     setExporting(true);
+    setError(null);
     try {
       const previewData = await apiClient.previewExport(projectId, selectedFormat);
       setPreview(previewData);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Preview failed:', err);
-      setPreview('Preview not available');
+      const apiError = err as { detail?: string; message?: string };
+      const errorMsg = apiError.detail || apiError.message || 'Preview failed';
+      setError(errorMsg);
+      setPreview(null);
     } finally {
       setExporting(false);
     }
@@ -86,12 +80,22 @@ export default function ProjectExportPage() {
 
   const handleExport = async () => {
     setExporting(true);
+    setError(null);
     try {
       const result = await apiClient.exportDocuments({
         project_id: projectId,
         format: selectedFormat,
-        citation_style: selectedFormat === 'bibtex' ? 'bibtex' : selectedStyle,
+        options: {
+          include_abstracts: true,
+          include_summaries: true,
+          include_key_findings: true,
+        },
       });
+
+      if (!result) {
+        setError('No content to export');
+        return;
+      }
 
       // Create download
       const blob = new Blob([result], {
@@ -101,7 +105,7 @@ export default function ProjectExportPage() {
       const a = document.createElement('a');
       a.href = url;
       a.download = `${project?.name || 'export'}.${
-        selectedFormat === 'markdown' || selectedFormat === 'annotated'
+        selectedFormat === 'markdown' || selectedFormat === 'annotated_bibliography'
           ? 'md'
           : selectedFormat
       }`;
@@ -109,9 +113,11 @@ export default function ProjectExportPage() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Export failed:', err);
-      setError('Export failed. Please try again.');
+      const apiError = err as { detail?: string; message?: string };
+      const errorMsg = apiError.detail || apiError.message || 'Export failed';
+      setError(errorMsg);
     } finally {
       setExporting(false);
     }
@@ -202,26 +208,6 @@ export default function ProjectExportPage() {
               })}
             </div>
           </div>
-
-          {/* Citation Style (for non-BibTeX formats) */}
-          {selectedFormat !== 'bibtex' && (
-            <div className="border rounded-lg p-6">
-              <h2 className="text-lg font-semibold mb-4">Citation Style</h2>
-              <select
-                value={selectedStyle}
-                onChange={(e) => setSelectedStyle(e.target.value as CitationStyle)}
-                className="w-full px-3 py-2 border rounded-md bg-background"
-              >
-                {(Object.entries(citationStyleNames) as [CitationStyle, string][])
-                  .filter(([key]) => key !== 'bibtex')
-                  .map(([style, name]) => (
-                    <option key={style} value={style}>
-                      {name}
-                    </option>
-                  ))}
-              </select>
-            </div>
-          )}
 
           {/* Export Actions */}
           <div className="flex gap-3">

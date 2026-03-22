@@ -27,8 +27,8 @@ settings = get_settings()
 
 def get_url() -> str:
     """Get database URL from settings."""
-    # Use sync URL for Alembic (it handles async internally)
-    return settings.database_url_sync
+    # Use async URL for async engine
+    return settings.database_url
 
 
 def run_migrations_offline() -> None:

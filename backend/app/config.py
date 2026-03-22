@@ -35,7 +35,7 @@ class Settings(BaseSettings):
 
     # Provider Configuration
     default_provider: str = "ollama"
-    default_model: str = "llama2"
+    default_model: str = "llama3.2:3b"
 
     # API Keys (optional)
     openai_api_key: str | None = None

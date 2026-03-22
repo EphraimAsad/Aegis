@@ -70,6 +70,9 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
 # Alias for FastAPI dependency injection
 get_db = get_db_session
 
+# Alias for async session factory (used by worker tasks)
+AsyncSessionLocal = async_session_factory
+
 
 def get_sync_session() -> Generator[Session, None, None]:
     """

@@ -48,6 +48,12 @@ class ExportService:
         """
         documents = await self._get_documents(project_id, document_ids)
 
+        # Validate we have documents to export
+        if not documents:
+            raise ValueError(
+                "No documents to export. Run a research job first to collect papers."
+            )
+
         # Generate content based on format
         if format == ExportFormat.CSV:
             content = self._to_csv(documents, options)
@@ -90,6 +96,12 @@ class ExportService:
         # Get all documents count
         all_docs = await self._get_documents(project_id, None)
         total = len(all_docs)
+
+        # Validate we have documents to preview
+        if not all_docs:
+            raise ValueError(
+                "No documents to preview. Run a research job first to collect papers."
+            )
 
         # Get limited documents for preview
         preview_docs = all_docs[:limit]
@@ -165,7 +177,16 @@ class ExportService:
                 row.append(doc.summary or "")
             if options.include_key_findings:
                 findings = doc.key_findings or []
-                row.append("; ".join(findings) if findings else "")
+                if findings:
+                    finding_strings = []
+                    for f in findings:
+                        if isinstance(f, dict):
+                            finding_strings.append(f.get("finding", str(f)))
+                        else:
+                            finding_strings.append(str(f))
+                    row.append("; ".join(finding_strings))
+                else:
+                    row.append("")
             if options.include_metadata:
                 row.extend(
                     [

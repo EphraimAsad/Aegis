@@ -172,11 +172,25 @@ class ClarificationService:
             questions = []
 
             for i, q_data in enumerate(questions_data.get("questions", [])):
+                # Validate question type with fallback
+                raw_type = q_data.get("question_type", "text")
+                try:
+                    question_type = QuestionType(raw_type)
+                except ValueError:
+                    question_type = QuestionType.TEXT
+
+                # Validate category with fallback
+                raw_category = q_data.get("category", "scope")
+                try:
+                    category = QuestionCategory(raw_category)
+                except ValueError:
+                    category = QuestionCategory.SCOPE
+
                 question = ClarificationQuestion(
                     project_id=project.id,
                     question=q_data["question"],
-                    question_type=QuestionType(q_data.get("question_type", "text")),
-                    category=QuestionCategory(q_data.get("category", "scope")),
+                    question_type=question_type,
+                    category=category,
                     options=q_data.get("options"),
                     help_text=q_data.get("help_text"),
                     scope_field=q_data.get("scope_field"),

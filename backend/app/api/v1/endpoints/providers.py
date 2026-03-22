@@ -31,10 +31,18 @@ async def list_providers() -> ProviderListResponse:
 
     for name in manager.list_providers():
         info = manager.get_provider_info(name)
+        # Perform health check for each provider
+        try:
+            provider = manager.get(name)
+            is_healthy = await provider.healthcheck()
+        except Exception:
+            is_healthy = False
+
         providers_info.append(
             ProviderInfo(
                 name=info["name"],
                 is_default=info["is_default"],
+                is_healthy=is_healthy,
                 capabilities=ProviderCapabilitiesResponse(**info["capabilities"]),
             )
         )

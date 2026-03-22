@@ -79,6 +79,12 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("answered_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.ForeignKeyConstraint(
             ["project_id"],
             ["projects.id"],

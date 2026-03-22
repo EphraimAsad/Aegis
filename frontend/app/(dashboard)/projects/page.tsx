@@ -10,9 +10,8 @@ const statusColors: Record<ProjectStatus, string> = {
   draft: 'bg-gray-100 text-gray-700',
   clarifying: 'bg-yellow-100 text-yellow-700',
   ready: 'bg-blue-100 text-blue-700',
-  searching: 'bg-purple-100 text-purple-700',
-  processing: 'bg-orange-100 text-orange-700',
-  complete: 'bg-green-100 text-green-700',
+  active: 'bg-purple-100 text-purple-700',
+  completed: 'bg-green-100 text-green-700',
   archived: 'bg-gray-200 text-gray-600',
 };
 

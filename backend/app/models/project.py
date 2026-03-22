@@ -124,8 +124,11 @@ class Project(Base):
     @property
     def is_ready_for_research(self) -> bool:
         """Check if the project is ready to begin research."""
-        return (
-            self.status == ProjectStatus.READY
-            and self.is_scope_complete
-            and self.unanswered_questions_count == 0
-        )
+        # Archived projects cannot start research
+        if self.status == ProjectStatus.ARCHIVED:
+            return False
+        # Projects with unanswered questions are not ready
+        if self.unanswered_questions_count > 0:
+            return False
+        # Ready if draft, clarifying (all questions answered), or ready
+        return self.status in (ProjectStatus.READY, ProjectStatus.DRAFT, ProjectStatus.CLARIFYING)
