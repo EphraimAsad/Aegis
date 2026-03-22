@@ -105,7 +105,7 @@ class RateLimitError(AegisError):
     """Rate limit exceeded."""
 
     def __init__(self, service: str, retry_after: int | None = None):
-        details = {"service": service}
+        details: dict[str, Any] = {"service": service}
         if retry_after:
             details["retry_after_seconds"] = retry_after
 

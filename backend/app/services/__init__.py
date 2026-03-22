@@ -5,6 +5,8 @@ Use `from app.services.health import check_database_health, check_redis_health`
 when you need health check functions.
 """
 
+from typing import Any
+
 from app.services.advanced_search import (
     AdvancedSearchService,
     get_advanced_search_service,
@@ -32,7 +34,7 @@ from app.services.summarization import (
 from app.services.tagging import TaggingService, get_tagging_service
 
 
-def __getattr__(name: str):
+def __getattr__(name: str) -> Any:
     """Lazy import for health check functions."""
     if name in ("check_database_health", "check_redis_health"):
         from app.services import health

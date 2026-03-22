@@ -103,6 +103,7 @@ def setup_logging() -> None:
     console_handler.setLevel(logging.DEBUG if settings.debug else logging.INFO)
 
     # Use different formatter based on environment
+    formatter: logging.Formatter
     if settings.environment == "development":
         formatter = DevelopmentFormatter()
     else:

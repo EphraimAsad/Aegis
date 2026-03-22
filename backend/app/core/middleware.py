@@ -36,7 +36,7 @@ class RequestTrackingMiddleware(BaseHTTPMiddleware):
         )
 
         # Process request
-        response = await call_next(request)
+        response: Response = await call_next(request)
 
         # Calculate duration
         duration_ms = (time.perf_counter() - start_time) * 1000
