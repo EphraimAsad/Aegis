@@ -19,7 +19,7 @@ pgvector>=0.2.4
 
 # Redis / Celery
 redis>=5.0.0
-celery>=5.3.0
+celery>=5.6.3
 
 # HTTP Client (for provider calls)
 httpx>=0.26.0
